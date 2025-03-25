@@ -41,6 +41,8 @@ export function clickNavView() {
         "What's constant is our ability to listen and focus, to analyze and connect dots, and to remain curious. The most rewarding projects are with clients who value the balance between pushing forward and allowing time for the perfect solution to emerge. That's our happy place."
     );
 
+    const textTiles = [textTile1, textTile2, textTile3];
+
     registerUpdateLayout(() => {
         centerImageScaled(home, 0.95);
         centerImageScaled(horizon, 1);
@@ -49,9 +51,7 @@ export function clickNavView() {
         centerImageScaled(insightClarity, 1);
         centerImageScaled(skyward, 1);
 
-        styleScrollTextSquare(textTile1, majorScrollTextDetails, minorScrollTextDetails);
-        styleScrollTextSquare(textTile2, majorScrollTextDetails, minorScrollTextDetails);
-        styleScrollTextSquare(textTile3, majorScrollTextDetails, minorScrollTextDetails);
+        for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
 
         const s = getScrollHeight();
 
@@ -83,9 +83,7 @@ export function clickNavView() {
             element.style.left = px(offset);
         }
 
-        alignScrollTextSquare(textTile1, 20, 20);
-        alignScrollTextSquare(textTile2, 20, 20);
-        alignScrollTextSquare(textTile3, 20, 20);
+        for (const textTile of textTiles) alignScrollTextSquare(textTile, 20, 20);
 
         setMaxScroll(textTile3.major);
     });

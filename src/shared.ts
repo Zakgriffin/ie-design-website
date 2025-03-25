@@ -165,7 +165,12 @@ function axisAligningWithGaps(axisSize: (element: HTMLElement) => number) {
 export const yAligningWithGaps = axisAligningWithGaps((element) => element.clientHeight);
 export const xAligningWithGaps = axisAligningWithGaps((element) => element.clientWidth);
 
-export function addScrollTextSquare(majorText: string, ...minorTexts: string[]) {
+export interface TextSquare {
+    major: HTMLElement;
+    minors: HTMLElement[];
+}
+
+export function addScrollTextSquare(majorText: string, ...minorTexts: string[]): TextSquare {
     const major = addScrollText(majorText);
     const minors = minorTexts.map(addScrollText);
     return { major, minors };

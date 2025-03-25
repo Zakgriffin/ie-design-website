@@ -1,10 +1,39 @@
 import { effect, Signal } from "../signal";
 import { animateSpring, Spring } from "../spring";
-import { addScrollImage, addScrollTextSquare, body, bodySig, centerVertical, getScrollHeight, mapRange, onNavOptionClick, px, registerUpdateLayout, spaceToFile, stupidAspectGarbage, xAligningWithGaps } from "../shared";
+import {
+    addScrollImage,
+    addScrollTextSquare,
+    alignScrollTextSquare,
+    body,
+    bodySig,
+    centerImageScaled,
+    getScrollHeight,
+    mapRange,
+    onNavOptionClick,
+    px,
+    registerUpdateLayout,
+    setMaxScroll,
+    spaceToFile,
+    styleScrollTextSquare,
+    TextSquare,
+    xAligningWithGaps,
+} from "../shared";
 
 interface WorkItem {
     name: string;
     description: string[];
+}
+
+interface WorkDisplay {
+    textSquare: TextSquare;
+    image1: HTMLImageElement;
+    image2: HTMLImageElement;
+}
+
+interface WorkTab {
+    tabElement: HTMLImageElement;
+    spring: Spring;
+    springSig: Signal;
 }
 
 const workItems: WorkItem[] = [
@@ -59,61 +88,70 @@ const workItems: WorkItem[] = [
         ],
     },
 ];
-// const addScrollTextSquareForWork = alignScrollTextSquare(
-//     {
-//         letterSpacing: 2.2,
-//         fontWeight: 400,
-//         color: "#333333",
-//         fontSizeScale: 0.065,
-//         widthScale: 1,
-//         lineHeightScale: 0.09,
-//     },
-//     20,
-//     {
-//         letterSpacing: 0.2,
-//         fontWeight: 300,
-//         color: "#333333",
-//         fontSizeScale: 0.03,
-//         widthScale: 1,
-//         lineHeightScale: 0.05,
-//     },
-//     20
-// );
 
-function clickedAnyTab() {
-    const items: (HTMLElement | number)[] = [];
+function styleWorkDisplays(workDisplays: WorkDisplay[]) {
+    for (const workDisplay of workDisplays) {
+        styleScrollTextSquare(
+            workDisplay.textSquare,
+            {
+                letterSpacing: 2.2,
+                fontWeight: 400,
+                color: "#333333",
+                fontSizeScale: 0.065,
+                widthScale: 1,
+                lineHeightScale: 0.09,
+            },
+            {
+                letterSpacing: 0.2,
+                fontWeight: 300,
+                color: "#333333",
+                fontSizeScale: 0.03,
+                widthScale: 1,
+                lineHeightScale: 0.05,
+            }
+        );
+        centerImageScaled(workDisplay.image1, 1);
+        centerImageScaled(workDisplay.image2, 1);
+    }
+}
 
-    const s = getScrollHeight();
+function populateWorkDisplays(workDisplays: WorkDisplay[]) {
     for (const item of workItems) {
-        const tile = addScrollTextSquare(item.name.toUpperCase(), ...item.description);
+        const textSquare = addScrollTextSquare(item.name.toUpperCase(), ...item.description);
+        const image1 = addScrollImage(`work/${spaceToFile(item.name)}/1.jpg`);
+        const image2 = addScrollImage(`work/${spaceToFile(item.name)}/2.jpg`);
+
+        workDisplays.push({ textSquare, image1, image2 });
+    }
+}
+
+function layoutWorkDisplays(workDisplays: WorkDisplay[]) {
+    const items = [];
+    const s = getScrollHeight();
+
+    for (const { textSquare, image1, image2 } of workDisplays) {
         items.push(
             //
-            tile.major,
+            textSquare.major,
             0.2 * s,
-            addScrollImage(`work/${spaceToFile(item.name)}/1.jpg`),
+            image1,
             0.15 * s,
-            addScrollImage(`work/${spaceToFile(item.name)}/2.jpg`),
+            image2,
             0.22 * s
         );
     }
 
-    effect(() => {
-        const [elementAlignments, _] = xAligningWithGaps(items);
+    const [elementAlignments, _] = xAligningWithGaps(items);
 
-        for (const { element, offset } of elementAlignments) {
-            element.style.left = px(offset);
-        }
-    }, [bodySig]);
-}
-
-interface WorkTab {
-    tabElement: HTMLImageElement;
-    spring: Spring;
-    springSig: Signal;
+    for (const { element, offset } of elementAlignments) {
+        element.style.left = px(offset);
+    }
 }
 
 export function clickNavWork() {
     const workTabs: WorkTab[] = [];
+
+    const workDisplays: WorkDisplay[] = [];
 
     for (let i = 0; i < workItems.length; i++) {
         const workItem = workItems[i];
@@ -153,7 +191,8 @@ export function clickNavWork() {
                 animateSpring(spring, springSig, 0.01);
             }
 
-            clickedAnyTab();
+            populateWorkDisplays(workDisplays);
+            bodySig.update(); // hm dont like this
         };
 
         workTabs.push({ tabElement, spring, springSig });
@@ -185,6 +224,13 @@ export function clickNavWork() {
                 tabElement.style.width = px(k * (tabElement.naturalWidth / tabElement.naturalHeight));
             }
             tabElement.style.left = px(start + i * width * 2);
+
+            styleWorkDisplays(workDisplays);
+            const s = getScrollHeight();
+            for (const workDisplay of workDisplays) alignScrollTextSquare(workDisplay.textSquare, 0.01 * s, 0.01 * s);
+            layoutWorkDisplays(workDisplays);
+
+            if (workDisplays.length) setMaxScroll(workDisplays[workDisplays.length - 1].image2);
         }
     });
 }
