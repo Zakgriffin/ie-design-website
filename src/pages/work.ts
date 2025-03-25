@@ -11,6 +11,7 @@ import {
     mapRange,
     onNavOptionClick,
     px,
+    queueBeforeLayout,
     registerUpdateLayout,
     setMaxScroll,
     setScroll,
@@ -205,7 +206,9 @@ export function clickNavWork() {
             populateWorkDisplays(workDisplays);
             bodySig.update(); // hm dont like this
 
-            setScroll(workDisplays[i].textSquare.major.offsetLeft);
+            queueBeforeLayout(() => {
+                setTimeout(() => setScroll(workDisplays[i].textSquare.major.offsetLeft));
+            });
         };
 
         const timeoutHandle = setTimeout(() => {

@@ -61,16 +61,20 @@ export function centerImageScaled(image: HTMLImageElement, scale: number) {
     image.style.top = px((scrollClip.clientHeight - height) / 2);
 }
 
-function appendImageSmart(element: HTMLElement, append: () => void) {
-    if (element instanceof HTMLImageElement) imageLoadingPromises.push(element.decode());
-    imageLoadingAppends.push(append);
+export function queueBeforeLayout(event: () => void) {
+    queuedBeforeLayout.push(event);
+}
+
+function notifyImageLoading(image: HTMLImageElement) {
+    imageLoadingPromises.push(image.decode());
 }
 
 export function addScrollImage(src: string): HTMLImageElement {
     const scrollImage = document.createElement("img");
     scrollImage.style.position = "absolute";
     scrollImage.src = src;
-    appendImageSmart(scrollImage, () => {
+    notifyImageLoading(scrollImage);
+    queueBeforeLayout(() => {
         scrollableItems.appendChild(scrollImage);
         onNavOptionClick.push(() => scrollableItems.removeChild(scrollImage));
     });
@@ -130,7 +134,7 @@ interface ScrollTextDetails {
 export function addScrollText(text: string) {
     const scrollText = document.createElement("p");
     scrollText.innerHTML = text;
-    appendImageSmart(scrollText, () => {
+    queueBeforeLayout(() => {
         scrollableItems.append(scrollText);
     });
     onNavOptionClick.push(() => scrollableItems.removeChild(scrollText));
@@ -192,14 +196,14 @@ export function styleScrollTextSquare({ major, minors }: ScrollTextSquare, major
 }
 
 let imageLoadingPromises: Promise<void>[] = [];
-let imageLoadingAppends: (() => void)[] = [];
+let queuedBeforeLayout: (() => void)[] = [];
 
 export async function registerUpdateLayout(updateLayout: () => void) {
     const updateLayoutImageWaiting = async () => {
         await Promise.all(imageLoadingPromises);
-        for (const imageLoadingAppend of imageLoadingAppends) imageLoadingAppend();
+        for (const imageLoadingAppend of queuedBeforeLayout) imageLoadingAppend();
         imageLoadingPromises = [];
-        imageLoadingAppends = [];
+        queuedBeforeLayout = [];
         updateLayout();
     };
     effect(updateLayoutImageWaiting, [bodySig]);
