@@ -61,16 +61,19 @@ export function centerImageScaled(image: HTMLImageElement, scale: number) {
     image.style.top = px((scrollClip.clientHeight - height) / 2);
 }
 
-export let waiting = 0;
+function appendImageSmart(element: HTMLElement, append: () => void) {
+    if (element instanceof HTMLImageElement) imageLoadingPromises.push(element.decode());
+    imageLoadingAppends.push(append);
+}
 
 export function addScrollImage(src: string): HTMLImageElement {
     const scrollImage = document.createElement("img");
     scrollImage.style.position = "absolute";
     scrollImage.src = src;
-    waiting++;
-    scrollImage.onload = () => waiting--;
-    scrollableItems.append(scrollImage);
-    onNavOptionClick.push(() => scrollableItems.removeChild(scrollImage));
+    appendImageSmart(scrollImage, () => {
+        scrollableItems.appendChild(scrollImage);
+        onNavOptionClick.push(() => scrollableItems.removeChild(scrollImage));
+    });
 
     return scrollImage;
 }
@@ -127,7 +130,9 @@ interface ScrollTextDetails {
 export function addScrollText(text: string) {
     const scrollText = document.createElement("p");
     scrollText.innerHTML = text;
-    scrollableItems.append(scrollText);
+    appendImageSmart(scrollText, () => {
+        scrollableItems.append(scrollText);
+    });
     onNavOptionClick.push(() => scrollableItems.removeChild(scrollText));
 
     return scrollText;
@@ -186,19 +191,21 @@ export function styleScrollTextSquare({ major, minors }: ScrollTextSquare, major
     for (const minor of minors) styleScrollText(minor, minorScrollTextDetails);
 }
 
-export async function registerUpdateLayout(updateLayout: () => void) {
-    effect(updateLayout, [bodySig]);
-    onNavOptionClick.push(() => bodySig.unsubscribe(updateLayout));
+let imageLoadingPromises: Promise<void>[] = [];
+let imageLoadingAppends: (() => void)[] = [];
 
-    // TODO this is abolute disgusting garbage. need to wait for images to load
-    const guh = () => {
-        if (waiting) {
-            setTimeout(guh);
-        } else {
-            updateLayout();
-        }
+export async function registerUpdateLayout(updateLayout: () => void) {
+    const updateLayoutImageWaiting = async () => {
+        await Promise.all(imageLoadingPromises);
+        for (const imageLoadingAppend of imageLoadingAppends) imageLoadingAppend();
+        imageLoadingPromises = [];
+        imageLoadingAppends = [];
+        updateLayout();
     };
-    guh();
+    effect(updateLayoutImageWaiting, [bodySig]);
+    onNavOptionClick.push(() => bodySig.unsubscribe(updateLayoutImageWaiting));
+
+    updateLayoutImageWaiting();
 }
 
 export function alignScrollTextSquare({ major, minors }: ScrollTextSquare, majorToMinorGap: number, betweenMinorsGap: number) {
