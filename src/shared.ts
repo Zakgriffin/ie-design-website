@@ -268,6 +268,11 @@ function updateScroll() {
     scrollableItems.style.left = px(-scroll);
 }
 
+export function setScroll(s: number) {
+    scroll = s;
+    updateScroll();
+}
+
 let maxScroll = 0;
 
 export function setMaxScroll(element: HTMLElement) {

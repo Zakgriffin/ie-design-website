@@ -27,7 +27,9 @@ export class Spring {
     }
 }
 
-export function animateSpring(spring: Spring, signal: Signal, tolerance: number) {
+const DEFAULT_ANIMATION_TOLERANCE = 0.01;
+
+export function animateSpring(spring: Spring, signal: Signal) {
     if (spring.isAnimating) return;
 
     spring.isAnimating = true;
@@ -36,7 +38,7 @@ export function animateSpring(spring: Spring, signal: Signal, tolerance: number)
         spring.tick(1 / 60);
         signal.update();
 
-        if (Math.abs(spring.target - spring.position) < tolerance && Math.abs(spring.velocity) < tolerance) {
+        if (Math.abs(spring.target - spring.position) < DEFAULT_ANIMATION_TOLERANCE && Math.abs(spring.velocity) < DEFAULT_ANIMATION_TOLERANCE) {
             spring.position = spring.target;
             spring.velocity = 0;
             spring.isAnimating = false;

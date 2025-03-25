@@ -13,13 +13,14 @@ import {
     px,
     registerUpdateLayout,
     setMaxScroll,
+    setScroll,
     spaceToFile,
     styleScrollTextSquare,
     TextSquare,
     xAligningWithGaps,
 } from "../shared";
 
-interface WorkItem {
+interface WorkContent {
     name: string;
     description: string[];
 }
@@ -30,13 +31,13 @@ interface WorkDisplay {
     image2: HTMLImageElement;
 }
 
-interface WorkTab {
+interface WorkItem {
     tabElement: HTMLImageElement;
     spring: Spring;
     springSig: Signal;
 }
 
-const workItems: WorkItem[] = [
+const workContents: WorkContent[] = [
     {
         name: "berwyn",
         description: [
@@ -90,9 +91,9 @@ const workItems: WorkItem[] = [
 ];
 
 function styleWorkDisplays(workDisplays: WorkDisplay[]) {
-    for (const workDisplay of workDisplays) {
+    for (const { textSquare, image1, image2 } of workDisplays) {
         styleScrollTextSquare(
-            workDisplay.textSquare,
+            textSquare,
             {
                 letterSpacing: 2.2,
                 fontWeight: 400,
@@ -110,16 +111,16 @@ function styleWorkDisplays(workDisplays: WorkDisplay[]) {
                 lineHeightScale: 0.05,
             }
         );
-        centerImageScaled(workDisplay.image1, 1);
-        centerImageScaled(workDisplay.image2, 1);
+        centerImageScaled(image1, 1);
+        centerImageScaled(image2, 1);
     }
 }
 
 function populateWorkDisplays(workDisplays: WorkDisplay[]) {
-    for (const item of workItems) {
-        const textSquare = addScrollTextSquare(item.name.toUpperCase(), ...item.description);
-        const image1 = addScrollImage(`work/${spaceToFile(item.name)}/1.jpg`);
-        const image2 = addScrollImage(`work/${spaceToFile(item.name)}/2.jpg`);
+    for (const workContent of workContents) {
+        const textSquare = addScrollTextSquare(workContent.name.toUpperCase(), ...workContent.description);
+        const image1 = addScrollImage(`work/${spaceToFile(workContent.name)}/1.jpg`);
+        const image2 = addScrollImage(`work/${spaceToFile(workContent.name)}/2.jpg`);
 
         workDisplays.push({ textSquare, image1, image2 });
     }
@@ -149,17 +150,19 @@ function layoutWorkDisplays(workDisplays: WorkDisplay[]) {
 }
 
 export function clickNavWork() {
-    const workTabs: WorkTab[] = [];
-
+    const workItems: WorkItem[] = [];
     const workDisplays: WorkDisplay[] = [];
 
-    for (let i = 0; i < workItems.length; i++) {
-        const workItem = workItems[i];
+    const BOTTOM = (tabElement: HTMLImageElement) => (window.innerHeight - tabElement.clientHeight) / 2;
+    const TOP = (tabElement: HTMLImageElement) => window.innerHeight - tabElement.clientWidth / 2;
+
+    for (let i = 0; i < workContents.length; i++) {
+        const workContent = workContents[i];
 
         const tabElement = document.createElement("img");
         tabElement.style.position = "absolute";
         tabElement.style.visibility = "hidden";
-        tabElement.src = `work/${spaceToFile(workItem.name)}/tab.png`;
+        tabElement.src = `work/${spaceToFile(workContent.name)}/tab.png`;
         body.append(tabElement);
         onNavOptionClick.push(() => body.removeChild(tabElement));
 
@@ -169,50 +172,60 @@ export function clickNavWork() {
 
         tabElement.onmouseover = () => {
             spring.target = -0.1;
-            animateSpring(spring, springSig, 0.01);
+            animateSpring(spring, springSig);
         };
 
         tabElement.onmouseleave = () => {
             spring.target = 0;
-            animateSpring(spring, springSig, 0.01);
+            animateSpring(spring, springSig);
         };
 
         effect(() => {
-            tabElement.style.top = px(mapRange(spring.position, 0, 1, (window.innerHeight - tabElement.clientHeight) / 2, window.innerHeight - tabElement.width / 2));
+            const k = mapRange(spring.position, 0, 1, BOTTOM(tabElement), TOP(tabElement));
+            tabElement.style.top = px(k);
         }, [springSig, bodySig]);
         springSig.update();
 
         tabElement.onclick = () => {
-            for (const { tabElement, spring, springSig } of workTabs) {
-                spring.stiffness = 800;
+            for (const workItem of workItems) {
+                const { tabElement, spring, springSig } = workItem;
+                spring.setStiffnessCritical(800);
                 spring.target = 1;
-                tabElement.onmouseover = () => {};
-                tabElement.onmouseleave = () => {};
-                animateSpring(spring, springSig, 0.01);
+                tabElement.onmouseover = () => {
+                    spring.target = mapRange(window.innerHeight - tabElement.width, BOTTOM(tabElement), TOP(tabElement), 0, 1);
+                    animateSpring(spring, springSig);
+                };
+                tabElement.onmouseleave = () => {
+                    spring.target = 1;
+                    animateSpring(spring, springSig);
+                };
+                animateSpring(spring, springSig);
             }
 
             populateWorkDisplays(workDisplays);
             bodySig.update(); // hm dont like this
-        };
 
-        workTabs.push({ tabElement, spring, springSig });
+            setScroll(workDisplays[i].textSquare.major.offsetLeft);
+        };
 
         const timeoutHandle = setTimeout(() => {
             spring.position = 1;
             tabElement.style.visibility = "visible";
-            animateSpring(spring, springSig, 0.01);
+            animateSpring(spring, springSig);
         }, 80 * i);
         onNavOptionClick.push(() => clearInterval(timeoutHandle));
+
+        workItems.push({ tabElement, spring, springSig });
     }
 
     registerUpdateLayout(() => {
-        for (let i = 0; i < workTabs.length; i++) {
-            const { tabElement } = workTabs[i];
+        for (let i = 0; i < workItems.length; i++) {
+            const { tabElement } = workItems[i];
 
             const start = 300;
             const end = window.innerWidth - 150;
 
-            const width = (end - start) / (workTabs.length * 2 - 1);
+            const width = (end - start) / (workItems.length * 2 - 1);
             const height = width * (tabElement.naturalHeight / tabElement.naturalWidth);
 
             const k = window.innerHeight * 0.8;
