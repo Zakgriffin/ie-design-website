@@ -190,7 +190,6 @@ export function clickNavWork() {
         tabElement.onclick = () => {
             for (const workItem of workItems) {
                 const { tabElement, spring, springSig } = workItem;
-                spring.setStiffnessCritical(800);
                 spring.target = 1;
                 tabElement.onmouseover = () => {
                     spring.target = mapRange(window.innerHeight - tabElement.width, BOTTOM(tabElement), TOP(tabElement), 0, 1);

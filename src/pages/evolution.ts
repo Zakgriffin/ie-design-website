@@ -1,5 +1,120 @@
-import { addScrollImage } from "../shared";
+import { addScrollImage, addScrollText, centerImageScaled, getScrollHeight, ieGreen, px, queueBeforeLayout, registerUpdateLayout, scrollableItems, setMaxScroll, styleScrollText, xAligningWithGaps, yAligningWithGaps } from "../shared";
+
+interface QuoteDisplay {
+    quote: HTMLParagraphElement;
+    author: HTMLParagraphElement;
+    title: HTMLParagraphElement;
+    openQuote: HTMLParagraphElement;
+    closeQuote: HTMLParagraphElement;
+}
+
+function addQuote(quoteText: string, authorText: string, titleText: string): QuoteDisplay {
+    const quote = addScrollText(quoteText);
+    const author = addScrollText(authorText);
+    const title = addScrollText(titleText);
+    const openQuote = addScrollText("“");
+    const closeQuote = addScrollText("”");
+
+    return { quote, author, title, openQuote, closeQuote };
+}
+
+function styleQuote({ quote, author, title, openQuote, closeQuote }: QuoteDisplay) {
+    const widthScale = 0.75;
+    styleScrollText(quote, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSizeScale: 0.032, widthScale, lineHeightScale: 0.065 });
+
+    styleScrollText(author, { letterSpacing: 0.2, fontWeight: 350, color: "#000000", fontSizeScale: 0.035, widthScale, lineHeightScale: 0.06 });
+    author.style.textAlign = "right";
+
+    styleScrollText(title, { letterSpacing: 0.15, fontWeight: 350, color: "#000000", fontSizeScale: 0.025, widthScale, lineHeightScale: 0.06 });
+    title.style.textAlign = "right";
+
+    const quoteTextDetails = { letterSpacing: 0.2, fontWeight: 350, color: ieGreen, fontSizeScale: 0.15, widthScale: 0.05, lineHeightScale: 0.06 };
+    styleScrollText(openQuote, quoteTextDetails);
+    styleScrollText(closeQuote, quoteTextDetails);
+}
+
+function layoutQuote({ quote, author, title, openQuote, closeQuote }: QuoteDisplay, nudge: number) {
+    const s = getScrollHeight();
+
+    author.style.left = px(quote.offsetLeft);
+    title.style.left = px(quote.offsetLeft);
+
+    const [elementAlignments, _] = yAligningWithGaps([
+        quote, //
+        0.04 * s,
+        author,
+        -0.015 * s,
+        title,
+    ]);
+
+    for (const { element, offset } of elementAlignments) {
+        element.style.top = px(offset + 0.35 * s);
+    }
+
+    openQuote.style.left = px(quote.offsetLeft - 0.07 * s);
+    openQuote.style.top = px(quote.offsetTop + 0.05 * s);
+    closeQuote.style.left = px(quote.offsetLeft + quote.offsetWidth - nudge);
+    closeQuote.style.top = px(quote.offsetTop + quote.offsetHeight - 0.01 * s);
+}
 
 export function clickNavEvolution() {
-    // const brandBuilt = addScrollImage("brand-built.svg");
+    const evolution = addScrollImage("evolution/evolution.svg");
+    const evolutionHistory = addScrollImage("evolution/evolution-history.svg");
+    // const logoFull = addScrollImage("evolution/logo-full.svg");
+
+    const promos = [
+        addScrollImage("evolution/promo-1.jpg"), //
+        addScrollImage("evolution/promo-2.jpg"),
+        addScrollImage("evolution/promo-3.jpg"),
+        addScrollImage("evolution/promo-4.jpg"),
+        addScrollImage("evolution/promo-5.jpg"),
+    ];
+
+    const quotes = [
+        addQuote(
+            "Our annual promo is always grounded in our identity but it's fun to push limits and reinvent ourselves each year. The best part is <strong>hearing what our clients have to say.</strong>",
+            "BETHLYN KRAKAUER",
+            "Founder, i.e. design, inc."
+        ),
+        addQuote("I love how you do stuff. I'm finding that these types of messages are really <strong>transforming relationships</strong> with people. They are just dreamy.", "DEBRA SCHATZKI", "Founder, BPP Wealth Solutions LLC"),
+        addQuote("I see a lot of this special quality in your work. It's not just about being intentional. You always bring in an element of <strong>surprise and delight.</strong>", "JOSH KRAKAUER", "Founder, Sculpt"),
+        addQuote("Your approach works so well because it is really <strong>personal</strong> and equally <strong>professional.</strong>", "ANN SULLIVAN", "Founder, Ann Sullivan Organizing"),
+        addQuote("You truly understand the unique positioning of a prospective client and are able to <strong>tell their story</strong> exactly as it should be told.", "DAVID YUN", "Principal, Varident LLC"),
+        addQuote(
+            "Beth is quite frankly one of the <strong>most talented designers</strong> that I have ever had the privilege to work with. She always has a special way of making everything she touches turn to gold!",
+            "DAVID RUSH",
+            "President, ENV"
+        ),
+    ];
+
+    registerUpdateLayout(() => {
+        centerImageScaled(evolution, 0.75);
+        centerImageScaled(evolutionHistory, 0.3);
+
+        for (const promo of promos) centerImageScaled(promo, 1);
+        for (const quote of quotes) styleQuote(quote);
+
+        const s = getScrollHeight();
+        const items: (HTMLElement | number)[] = [
+            evolution, //
+            0.2 * s,
+            evolutionHistory,
+        ];
+
+        const maxLength = Math.max(quotes.length, promos.length);
+        for (let i = 0; i < maxLength; i++) {
+            if (i < quotes.length) items.push(0.3 * s, quotes[i].quote);
+            if (i < promos.length) items.push(0.3 * s, promos[i]);
+        }
+
+        const [elementAlignments, _] = xAligningWithGaps(items);
+
+        for (const { element, offset } of elementAlignments) {
+            element.style.left = px(offset);
+        }
+
+        for (const quote of quotes) layoutQuote(quote, 0.05 * s);
+
+        setMaxScroll(quotes[quotes.length - 1].quote);
+    });
 }

@@ -9,6 +9,7 @@ export const body = document.body;
 export const bodySig = elementSignal(body);
 
 export const ieBlue = "#609CCE";
+export const ieGreen = "#bfe021";
 
 export const viewNav = g("nav-view");
 export const workNav = g("nav-work");
