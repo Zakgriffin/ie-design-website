@@ -1,25 +1,8 @@
 import { effect, Signal } from "../signal";
 import { animateSpring, Spring } from "../spring";
-import {
-    addScrollImage,
-    addScrollTextSquare,
-    alignScrollTextSquare,
-    body,
-    bodySig,
-    centerImageScaled,
-    getScrollHeight,
-    mapRange,
-    onNavOptionClick,
-    px,
-    queueBeforeLayout,
-    registerUpdateLayout,
-    setMaxScroll,
-    setScroll,
-    spaceToFile,
-    styleScrollTextSquare,
-    TextSquare,
-    xAligningWithGaps,
-} from "../shared";
+import { addScrollImage, addScrollTextSquare, onNavOptionClick, spaceToFile, styleScrollTextSquare, TextSquare } from "../shared";
+import { alignScrollTextSquare, centerImageScaled, getScrollHeight, mapRange, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
+import { body, bodySig } from "../constants";
 
 interface WorkContent {
     name: string;
@@ -204,10 +187,6 @@ export function clickNavWork() {
 
             populateWorkDisplays(workDisplays);
             bodySig.update(); // hm dont like this
-
-            queueBeforeLayout(() => {
-                setTimeout(() => setScroll(workDisplays[i].textSquare.major.offsetLeft));
-            });
         };
 
         const timeoutHandle = setTimeout(() => {
@@ -244,8 +223,6 @@ export function clickNavWork() {
             const s = getScrollHeight();
             for (const workDisplay of workDisplays) alignScrollTextSquare(workDisplay.textSquare, 0.01 * s, 0.01 * s);
             layoutWorkDisplays(workDisplays);
-
-            if (workDisplays.length) setMaxScroll(workDisplays[workDisplays.length - 1].image2);
         }
     });
 }

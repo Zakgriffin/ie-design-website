@@ -1,4 +1,6 @@
-import { addScrollTextSquare, getScrollHeight, px, SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION, xAligningWithGaps, centerImageScaled, addScrollImage, alignScrollTextSquare, styleScrollTextSquare, registerUpdateLayout, setMaxScroll } from "../shared";
+import { ieBlue, SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
+import { alignScrollTextSquare, centerImageScaled, getScrollHeight, px, registerUpdateLayout, xAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollTextSquare, styleScrollTextSquare } from "../shared";
 
 const majorScrollTextDetails = {
     letterSpacing: 2.2,
@@ -12,7 +14,7 @@ const majorScrollTextDetails = {
 const minorScrollTextDetails = {
     letterSpacing: 0.2,
     fontWeight: 300,
-    color: "#000000",
+    color: ieBlue,
     fontSizeScale: 0.03,
     widthScale: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION,
     lineHeightScale: 0.05,
@@ -84,7 +86,5 @@ export function clickNavView() {
         }
 
         for (const textTile of textTiles) alignScrollTextSquare(textTile, 20, 20);
-
-        setMaxScroll(textTile3.major);
     });
 }

@@ -1,3 +1,5 @@
+import "./layout";
+
 import "./pages/view";
 import "./pages/work";
 import "./pages/inspiration";

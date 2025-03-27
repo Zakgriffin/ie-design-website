@@ -1,5 +1,6 @@
-import { effect } from "../signal";
-import { addScrollImage, addScrollText, alignWithGap, bodySig, centerImageScaled, getScrollHeight, ieBlue, px, registerUpdateLayout, setMaxScroll, styleScrollText, yAligningWithGaps } from "../shared";
+import { ieBlue } from "../constants";
+import { alignWithGap, centerImageScaled, getScrollHeight, px, registerUpdateLayout, yAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollText, styleScrollText } from "../shared";
 
 const INSPIRATION_TILE_WIDTH_PROPORTION = 0.85;
 
@@ -100,7 +101,5 @@ export function clickNavInspiration() {
         for (let i = 0; i < tiles.length - 1; i++) alignWithGap(tiles[i].image, tiles[i + 1].image, s * 0.1);
 
         for (const tile of tiles) alignInspirationTile(tile);
-
-        setMaxScroll(tiles[tiles.length - 1].image);
     });
 }

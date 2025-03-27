@@ -1,4 +1,6 @@
-import { addScrollImage, addScrollText, centerImageScaled, getScrollHeight, ieGreen, px, queueBeforeLayout, registerUpdateLayout, scrollableItems, setMaxScroll, styleScrollText, xAligningWithGaps, yAligningWithGaps } from "../shared";
+import { ieGreen } from "../constants";
+import { centerImageScaled, getScrollHeight, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollText, styleScrollText } from "../shared";
 
 interface QuoteDisplay {
     quote: HTMLParagraphElement;
@@ -62,13 +64,8 @@ export function clickNavEvolution() {
     const evolutionHistory = addScrollImage("evolution/evolution-history.svg");
     // const logoFull = addScrollImage("evolution/logo-full.svg");
 
-    const promos = [
-        addScrollImage("evolution/promo-1.jpg"), //
-        addScrollImage("evolution/promo-2.jpg"),
-        addScrollImage("evolution/promo-3.jpg"),
-        addScrollImage("evolution/promo-4.jpg"),
-        addScrollImage("evolution/promo-5.jpg"),
-    ];
+    const promos: HTMLImageElement[] = [];
+    for (let i = 1; i <= 5; i++) promos.push(addScrollImage(`evolution/promo-${i}.jpg`));
 
     const quotes = [
         addQuote(
@@ -95,11 +92,7 @@ export function clickNavEvolution() {
         for (const quote of quotes) styleQuote(quote);
 
         const s = getScrollHeight();
-        const items: (HTMLElement | number)[] = [
-            evolution, //
-            0.2 * s,
-            evolutionHistory,
-        ];
+        const items: (HTMLElement | number)[] = [evolution, 0.2 * s, evolutionHistory];
 
         const maxLength = Math.max(quotes.length, promos.length);
         for (let i = 0; i < maxLength; i++) {
@@ -114,7 +107,5 @@ export function clickNavEvolution() {
         }
 
         for (const quote of quotes) layoutQuote(quote, 0.05 * s);
-
-        setMaxScroll(quotes[quotes.length - 1].quote);
     });
 }

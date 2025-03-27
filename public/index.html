@@ -26,9 +26,7 @@
     <div id="nav-evolution" class="navhead">EVOLUTION</div>
     <div id="nav-connect" class="navhead">CONNECT</div>
 
-    <div id="scroll-clip">
-        <div id="scrollable-items"></div>
-    </div>
+    <div id="scroll-container"></div>
 
     <svg id="global-svg" overflow="visible"></svg>
 </body>
@@ -38,13 +36,10 @@
         position: absolute;
     }
 
-    #scroll-clip {
+    #scroll-container {
         position: absolute;
         overflow: hidden;
-    }
-
-    #scrollable-items {
-        position: absolute;
+        overflow-x: auto;
     }
 
     .navhead {
@@ -55,12 +50,9 @@
         font-weight: 500;
     }
 
-    /* #global-svg {
-            position: absolute;
-        } */
-
     body {
         overflow: hidden;
+        overscroll-behavior-x: none;
         background-color: #ffffff;
     }
 
