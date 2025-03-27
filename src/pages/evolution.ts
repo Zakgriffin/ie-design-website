@@ -1,5 +1,5 @@
 import { ieGreen } from "../constants";
-import { centerImageScaled, getScrollHeight, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
+import { centerScaledY, getScrollHeight, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
 import { addScrollImage, addScrollText, styleScrollText } from "../shared";
 
 interface QuoteDisplay {
@@ -85,10 +85,10 @@ export function clickNavEvolution() {
     ];
 
     registerUpdateLayout(() => {
-        centerImageScaled(evolution, 0.75);
-        centerImageScaled(evolutionHistory, 0.3);
+        centerScaledY(evolution, 0.75);
+        centerScaledY(evolutionHistory, 0.3);
 
-        for (const promo of promos) centerImageScaled(promo, 1);
+        for (const promo of promos) centerScaledY(promo, 1);
         for (const quote of quotes) styleQuote(quote);
 
         const s = getScrollHeight();

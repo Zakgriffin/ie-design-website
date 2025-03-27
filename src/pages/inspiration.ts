@@ -1,5 +1,5 @@
 import { ieBlue } from "../constants";
-import { alignWithGap, centerImageScaled, getScrollHeight, px, registerUpdateLayout, yAligningWithGaps } from "../layout";
+import { alignWithGap, centerScaledY, getScrollHeight, px, registerUpdateLayout, yAligningWithGaps } from "../layout";
 import { addScrollImage, addScrollText, styleScrollText } from "../shared";
 
 const INSPIRATION_TILE_WIDTH_PROPORTION = 0.85;
@@ -93,7 +93,7 @@ export function clickNavInspiration() {
     registerUpdateLayout(() => {
         const s = getScrollHeight();
 
-        centerImageScaled(inspiration, 0.75);
+        centerScaledY(inspiration, 0.75);
 
         for (const tile of tiles) styleInspirationTile(tile);
 

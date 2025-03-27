@@ -4,7 +4,7 @@ import { clickNavEvolution } from "./pages/evolution";
 import { clickNavInspiration } from "./pages/inspiration";
 import { clickNavView } from "./pages/view";
 import { clickNavWork } from "./pages/work";
-import { getScrollHeight, notifyImageLoading, px, queueBeforeLayout } from "./layout";
+import { getScrollHeight, getScrollWidth, isLandscape, notifyImageLoading, px, queueBeforeLayout } from "./layout";
 import { bodySig } from "./constants";
 
 interface ScrollTextDetails {
@@ -110,32 +110,53 @@ export function spaceToFile(s: string) {
 }
 
 effect(() => {
-    const leftAlign = 80;
-    logo.style.width = px(55);
-    logo.style.height = px(55);
-    logo.style.left = px(leftAlign);
-    logo.style.top = px(leftAlign / 2);
+    if (isLandscape()) {
+        const leftAlign = 80;
+        logo.style.width = px(55);
+        logo.style.height = px(55);
+        logo.style.left = px(leftAlign);
+        logo.style.top = px(leftAlign / 2);
 
-    function alignNavItem(navItem: HTMLElement, nudge: number) {
-        navItem.style.left = px(leftAlign);
-        navItem.style.top = px(window.innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
+        function alignNavItem(navItem: HTMLElement, nudge: number) {
+            navItem.style.left = px(leftAlign);
+            navItem.style.top = px(window.innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
+        }
+
+        alignNavItem(viewNav, -2);
+        alignNavItem(workNav, -1);
+        alignNavItem(inspirationNav, 0);
+        alignNavItem(evolutionNav, 1);
+        alignNavItem(connectNav, 2);
+    } else {
+        function goAway(element: HTMLElement) {
+            element.style.left = px(-1000);
+            element.style.right = px(-1000);
+        }
+        goAway(logo); // temporary
+        goAway(viewNav);
+        goAway(workNav);
+        goAway(inspirationNav);
+        goAway(evolutionNav);
+        goAway(connectNav);
     }
-
-    alignNavItem(viewNav, -2);
-    alignNavItem(workNav, -1);
-    alignNavItem(inspirationNav, 0);
-    alignNavItem(evolutionNav, 1);
-    alignNavItem(connectNav, 2);
 }, [bodySig]);
 
 effect(() => {
-    const x = 280;
+    if (isLandscape()) {
+        const x = 280;
 
-    const scrollHeight = getScrollHeight();
-    scrollContainer.style.height = px(scrollHeight);
-    scrollContainer.style.width = px(window.innerWidth - x);
-    scrollContainer.style.top = px((window.innerHeight - scrollContainer.offsetHeight) / 2);
-    scrollContainer.style.left = px(x);
+        const scrollHeight = getScrollHeight();
+        scrollContainer.style.height = px(scrollHeight);
+        scrollContainer.style.width = px(window.innerWidth - x);
+        scrollContainer.style.top = px((window.innerHeight - scrollHeight) / 2);
+        scrollContainer.style.left = px(x);
+    } else {
+        const scrollWidth = getScrollWidth();
+        scrollContainer.style.width = px(scrollWidth);
+        scrollContainer.style.height = px(window.innerHeight);
+        scrollContainer.style.left = px((window.innerWidth - scrollWidth) / 2);
+        scrollContainer.style.top = px(0);
+    }
 }, [bodySig]);
 
 // replace normal scroll behavior with xy behavior

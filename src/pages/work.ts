@@ -1,7 +1,7 @@
 import { effect, Signal } from "../signal";
 import { animateSpring, Spring } from "../spring";
 import { addScrollImage, addScrollTextSquare, onNavOptionClick, spaceToFile, styleScrollTextSquare, TextSquare } from "../shared";
-import { alignScrollTextSquare, centerImageScaled, getScrollHeight, mapRange, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
+import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
 import { body, bodySig } from "../constants";
 
 interface WorkContent {
@@ -95,8 +95,8 @@ function styleWorkDisplays(workDisplays: WorkDisplay[]) {
                 lineHeightScale: 0.05,
             }
         );
-        centerImageScaled(image1, 1);
-        centerImageScaled(image2, 1);
+        centerScaledY(image1, 1);
+        centerScaledY(image2, 1);
     }
 }
 

@@ -1,5 +1,5 @@
-import { ieBlue, SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
-import { alignScrollTextSquare, centerImageScaled, getScrollHeight, px, registerUpdateLayout, xAligningWithGaps } from "../layout";
+import { SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
+import { alignScrollTextSquare, centerScaledX, centerScaledY, getScrollHeight, getScrollWidth, isLandscape, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
 import { addScrollImage, addScrollTextSquare, styleScrollTextSquare } from "../shared";
 
 const majorScrollTextDetails = {
@@ -14,7 +14,7 @@ const majorScrollTextDetails = {
 const minorScrollTextDetails = {
     letterSpacing: 0.2,
     fontWeight: 300,
-    color: ieBlue,
+    color: "#000000",
     fontSizeScale: 0.03,
     widthScale: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION,
     lineHeightScale: 0.05,
@@ -46,45 +46,88 @@ export function clickNavView() {
     const textTiles = [textTile1, textTile2, textTile3];
 
     registerUpdateLayout(() => {
-        centerImageScaled(home, 0.95);
-        centerImageScaled(horizon, 1);
-        centerImageScaled(freshLook, 0.8);
-        centerImageScaled(greatBrands, 1);
-        centerImageScaled(insightClarity, 1);
-        centerImageScaled(skyward, 1);
-
-        for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
-
-        const s = getScrollHeight();
-
         const HOME_HORIZON_PAD = 0.2;
         const FRESH_LOOK_PAD = 0.13;
         const IMAGE_TEXT_SQUARE_PAD = 0.17;
 
-        const [elementAlignments, _] = xAligningWithGaps([
-            home,
-            HOME_HORIZON_PAD * s,
-            horizon,
-            FRESH_LOOK_PAD * s,
-            freshLook,
-            FRESH_LOOK_PAD * s,
-            greatBrands,
-            IMAGE_TEXT_SQUARE_PAD * s,
-            textTile1.major,
-            IMAGE_TEXT_SQUARE_PAD * s,
-            insightClarity,
-            IMAGE_TEXT_SQUARE_PAD * s,
-            textTile2.major,
-            IMAGE_TEXT_SQUARE_PAD * s,
-            skyward,
-            IMAGE_TEXT_SQUARE_PAD * s,
-            textTile3.major,
-        ]);
+        if (isLandscape()) {
+            centerScaledY(home, 0.95);
+            centerScaledY(horizon, 1);
+            centerScaledY(freshLook, 0.8);
+            centerScaledY(greatBrands, 1);
+            centerScaledY(insightClarity, 1);
+            centerScaledY(skyward, 1);
 
-        for (const { element, offset } of elementAlignments) {
-            element.style.left = px(offset);
+            for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
+
+            const s = getScrollHeight();
+
+            const [elementAlignments, _] = xAligningWithGaps([
+                home,
+                HOME_HORIZON_PAD * s,
+                horizon,
+                FRESH_LOOK_PAD * s,
+                freshLook,
+                FRESH_LOOK_PAD * s,
+                greatBrands,
+                IMAGE_TEXT_SQUARE_PAD * s,
+                textTile1.major,
+                IMAGE_TEXT_SQUARE_PAD * s,
+                insightClarity,
+                IMAGE_TEXT_SQUARE_PAD * s,
+                textTile2.major,
+                IMAGE_TEXT_SQUARE_PAD * s,
+                skyward,
+                IMAGE_TEXT_SQUARE_PAD * s,
+                textTile3.major,
+            ]);
+
+            for (const { element, offset } of elementAlignments) {
+                element.style.left = px(offset);
+            }
+
+            for (const textTile of textTiles) alignScrollTextSquare(textTile, 20, 20);
+        } else {
+            centerScaledX(home, 0.95);
+            centerScaledX(horizon, 1);
+            centerScaledX(freshLook, 0.8);
+            centerScaledX(greatBrands, 1);
+            centerScaledX(insightClarity, 1);
+            centerScaledX(skyward, 1);
+            for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
+            const s = getScrollWidth();
+
+            const [elementAlignments, _] = yAligningWithGaps([
+                //
+                home,
+                0.1 * s,
+                horizon,
+                0.1 * s,
+                freshLook,
+                0.1 * s,
+                greatBrands,
+                0.1 * s,
+                textTile1.major,
+                ...textTile1.minors,
+                0.1 * s,
+                insightClarity,
+                0.1 * s,
+                textTile2.major,
+                ...textTile2.minors,
+                0.1 * s,
+                skyward,
+                0.1 * s,
+                textTile3.major,
+                ...textTile3.minors,
+            ]);
+            for (const { element, offset } of elementAlignments) {
+                element.style.top = px(offset);
+            }
+
+            for (const textTile of textTiles) {
+                centerScaledX(textTile.major, 0.8);
+                for (const minor of textTile.minors) centerScaledX(minor, 0.8);
+            }
         }
-
-        for (const textTile of textTiles) alignScrollTextSquare(textTile, 20, 20);
     });
 }
