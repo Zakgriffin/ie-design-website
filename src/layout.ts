@@ -42,12 +42,12 @@ export function notifyImageLoading(image: HTMLImageElement) {
 
 export function getScrollHeight() {
     const SCROLL_HEIGHT_PROPORTION = 0.7;
-    return window.innerHeight * SCROLL_HEIGHT_PROPORTION; // TODO this should just use actual scroll height
+    return innerHeight * SCROLL_HEIGHT_PROPORTION; // TODO this should just use actual scroll height
 }
 
 export function getScrollWidth() {
     const SCROLL_WIDTH_PROPORTION = 1;
-    return window.innerWidth * SCROLL_WIDTH_PROPORTION; // TODO this should just use actual scroll height
+    return innerWidth * SCROLL_WIDTH_PROPORTION; // TODO this should just use actual scroll height
 }
 
 export function alignWithGap(leftElement: HTMLElement, rightElement: HTMLElement, gap: number) {
@@ -99,6 +99,7 @@ export function alignScrollTextSquare({ major, minors }: TextSquare, majorToMino
 export function centerScaledY(element: HTMLElement, scale: number) {
     const height = scrollContainer.clientHeight * scale;
     element.style.height = px(height);
+    if (element instanceof HTMLImageElement) element.style.width = px((height * element.naturalWidth) / element.naturalHeight);
     element.style.top = px((scrollContainer.clientHeight - height) / 2);
 }
 
@@ -110,5 +111,5 @@ export function centerScaledX(element: HTMLElement, scale: number) {
 }
 
 export function isLandscape() {
-    return window.innerWidth / window.innerHeight > 1;
+    return innerWidth / innerHeight > 1;
 }

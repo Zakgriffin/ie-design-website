@@ -5,7 +5,7 @@ import { clickNavInspiration } from "./pages/inspiration";
 import { clickNavView } from "./pages/view";
 import { clickNavWork } from "./pages/work";
 import { getScrollHeight, getScrollWidth, isLandscape, notifyImageLoading, px, queueBeforeLayout } from "./layout";
-import { bodySig } from "./constants";
+import { body, bodySig } from "./constants";
 
 interface ScrollTextDetails {
     letterSpacing: number;
@@ -119,7 +119,7 @@ effect(() => {
 
         function alignNavItem(navItem: HTMLElement, nudge: number) {
             navItem.style.left = px(leftAlign);
-            navItem.style.top = px(window.innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
+            navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
         }
 
         alignNavItem(viewNav, -2);
@@ -147,24 +147,27 @@ effect(() => {
 
         const scrollHeight = getScrollHeight();
         scrollContainer.style.height = px(scrollHeight);
-        scrollContainer.style.width = px(window.innerWidth - x);
-        scrollContainer.style.top = px((window.innerHeight - scrollHeight) / 2);
+        scrollContainer.style.width = px(innerWidth - x);
+        scrollContainer.style.top = px((innerHeight - scrollHeight) / 2);
         scrollContainer.style.left = px(x);
     } else {
         const scrollWidth = getScrollWidth();
         scrollContainer.style.width = px(scrollWidth);
-        scrollContainer.style.height = px(window.innerHeight);
-        scrollContainer.style.left = px((window.innerWidth - scrollWidth) / 2);
+        scrollContainer.style.height = px(innerHeight);
+        scrollContainer.style.left = px((innerWidth - scrollWidth) / 2);
         scrollContainer.style.top = px(0);
     }
 }, [bodySig]);
 
 // replace normal scroll behavior with xy behavior
-scrollContainer.onwheel = (e) => e.preventDefault();
-window.onwheel = (e) => {
-    const deltaXY = e.deltaX + e.deltaY;
-    scrollContainer.scrollBy({ left: deltaXY, top: deltaXY });
-};
+// scrollContainer.onwheel = (e) => e.preventDefault();
+// scrollContainer.ontouchmove = (e) => e.preventDefault();
+
+// ontouchmove = (e) => {};
+// onwheel = (e) => {
+//     const deltaXY = e.deltaX + e.deltaY;
+//     scrollContainer.scrollBy({ left: deltaXY, top: deltaXY });
+// };
 
 clickAnyNav(logo, clickNavView);
 

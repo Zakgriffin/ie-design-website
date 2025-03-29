@@ -95,6 +95,12 @@ export function clickNavView() {
             centerScaledX(insightClarity, 1);
             centerScaledX(skyward, 1);
             for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
+
+            for (const textTile of textTiles) {
+                centerScaledX(textTile.major, 0.8);
+                for (const minor of textTile.minors) centerScaledX(minor, 0.8);
+            }
+
             const s = getScrollWidth();
 
             const [elementAlignments, _] = yAligningWithGaps([
@@ -122,11 +128,6 @@ export function clickNavView() {
             ]);
             for (const { element, offset } of elementAlignments) {
                 element.style.top = px(offset);
-            }
-
-            for (const textTile of textTiles) {
-                centerScaledX(textTile.major, 0.8);
-                for (const minor of textTile.minors) centerScaledX(minor, 0.8);
             }
         }
     });

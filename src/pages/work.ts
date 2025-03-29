@@ -1,6 +1,6 @@
 import { effect, Signal } from "../signal";
 import { animateSpring, Spring } from "../spring";
-import { addScrollImage, addScrollTextSquare, onNavOptionClick, spaceToFile, styleScrollTextSquare, TextSquare } from "../shared";
+import { addScrollImage, addScrollTextSquare, onNavOptionClick, scrollContainer, spaceToFile, styleScrollTextSquare, TextSquare } from "../shared";
 import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
 import { body, bodySig } from "../constants";
 
@@ -137,8 +137,8 @@ export function clickNavWork() {
     const workItems: WorkItem[] = [];
     const workDisplays: WorkDisplay[] = [];
 
-    const BOTTOM = (tabElement: HTMLImageElement) => (window.innerHeight - tabElement.clientHeight) / 2;
-    const TOP = (tabElement: HTMLImageElement) => window.innerHeight - tabElement.clientWidth / 2;
+    const BOTTOM = (tabElement: HTMLImageElement) => (innerHeight - tabElement.clientHeight) / 2;
+    const TOP = (tabElement: HTMLImageElement) => innerHeight - tabElement.clientWidth / 2;
 
     for (let i = 0; i < workContents.length; i++) {
         const workContent = workContents[i];
@@ -175,7 +175,7 @@ export function clickNavWork() {
                 const { tabElement, spring, springSig } = workItem;
                 spring.target = 1;
                 tabElement.onmouseover = () => {
-                    spring.target = mapRange(window.innerHeight - tabElement.width, BOTTOM(tabElement), TOP(tabElement), 0, 1);
+                    spring.target = mapRange(innerHeight - tabElement.width, BOTTOM(tabElement), TOP(tabElement), 0, 1);
                     animateSpring(spring, springSig);
                 };
                 tabElement.onmouseleave = () => {
@@ -187,6 +187,7 @@ export function clickNavWork() {
 
             populateWorkDisplays(workDisplays);
             bodySig.update(); // hm dont like this
+            scrollContainer.scrollTo({ left: workDisplays[i].textSquare.major.scrollLeft });
         };
 
         const timeoutHandle = setTimeout(() => {
@@ -204,12 +205,12 @@ export function clickNavWork() {
             const { tabElement } = workItems[i];
 
             const start = 300;
-            const end = window.innerWidth - 150;
+            const end = innerWidth - 150;
 
             const width = (end - start) / (workItems.length * 2 - 1);
             const height = width * (tabElement.naturalHeight / tabElement.naturalWidth);
 
-            const k = window.innerHeight * 0.8;
+            const k = innerHeight * 0.8;
             if (height < k) {
                 tabElement.style.width = px(width);
                 tabElement.style.height = px(height);
