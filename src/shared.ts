@@ -11,10 +11,9 @@ interface ScrollTextDetails {
     letterSpacing: number;
     fontWeight: number;
     color: string;
-
-    fontSizeScale: number;
-    widthScale: number;
-    lineHeightScale: number;
+    fontSize: number;
+    width: number;
+    lineHeight: number;
 }
 
 export interface TextSquare {
@@ -88,10 +87,9 @@ export function styleScrollText(scrollText: HTMLElement, s: ScrollTextDetails) {
     scrollText.style.color = s.color;
     scrollText.style.letterSpacing = px(s.letterSpacing);
 
-    const scrollHeight = getScrollHeight();
-    scrollText.style.fontSize = px(scrollHeight * s.fontSizeScale);
-    scrollText.style.width = px(scrollHeight * s.widthScale);
-    scrollText.style.lineHeight = px(scrollHeight * s.lineHeightScale);
+    scrollText.style.fontSize = px(s.fontSize);
+    scrollText.style.width = px(s.width);
+    scrollText.style.lineHeight = px(s.lineHeight);
 }
 
 export function addScrollTextSquare(majorText: string, ...minorTexts: string[]): TextSquare {

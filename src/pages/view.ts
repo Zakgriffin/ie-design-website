@@ -1,24 +1,6 @@
 import { SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
 import { alignScrollTextSquare, centerScaledX, centerScaledY, getScrollHeight, getScrollWidth, isLandscape, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollTextSquare, styleScrollTextSquare } from "../shared";
-
-const majorScrollTextDetails = {
-    letterSpacing: 2.2,
-    fontWeight: 400,
-    color: "#B3B3B3",
-    fontSizeScale: 0.065,
-    widthScale: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION,
-    lineHeightScale: 0.09,
-};
-
-const minorScrollTextDetails = {
-    letterSpacing: 0.2,
-    fontWeight: 300,
-    color: "#000000",
-    fontSizeScale: 0.03,
-    widthScale: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION,
-    lineHeightScale: 0.05,
-};
+import { addScrollImage, addScrollTextSquare, styleScrollTextSquare, TextSquare } from "../shared";
 
 export function clickNavView() {
     const home = addScrollImage("view/home.svg");
@@ -58,9 +40,14 @@ export function clickNavView() {
             centerScaledY(insightClarity, 1);
             centerScaledY(skyward, 1);
 
-            for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
-
             const s = getScrollHeight();
+
+            for (const textTile of textTiles)
+                styleScrollTextSquare(
+                    textTile,
+                    { letterSpacing: 2.2, fontWeight: 400, color: "#B3B3B3", fontSize: 0.065 * s, width: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION * s, lineHeight: 0.09 * s },
+                    { letterSpacing: 0.2, fontWeight: 300, color: "#000000", fontSize: 0.03 * s, width: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION * s, lineHeight: 0.05 * s }
+                );
 
             const [elementAlignments, _] = xAligningWithGaps([
                 home,
@@ -90,41 +77,53 @@ export function clickNavView() {
         } else {
             centerScaledX(home, 0.95);
             centerScaledX(horizon, 1);
-            centerScaledX(freshLook, 0.8);
+            centerScaledX(freshLook, 0.85);
             centerScaledX(greatBrands, 1);
             centerScaledX(insightClarity, 1);
             centerScaledX(skyward, 1);
-            for (const textTile of textTiles) styleScrollTextSquare(textTile, majorScrollTextDetails, minorScrollTextDetails);
-
-            for (const textTile of textTiles) {
-                centerScaledX(textTile.major, 0.8);
-                for (const minor of textTile.minors) centerScaledX(minor, 0.8);
-            }
 
             const s = getScrollWidth();
+
+            for (const textTile of textTiles)
+                styleScrollTextSquare(
+                    textTile,
+                    { letterSpacing: 4, fontWeight: 350, color: "#B3B3B3", fontSize: 0.06 * s, width: 1 * s, lineHeight: 0.08 * s },
+                    { letterSpacing: 0.2, fontWeight: 300, color: "#000000", fontSize: 0.028 * s, width: 1 * s, lineHeight: 0.05 * s }
+                );
+
+            const TEXT_TILE_WIDTH = 0.85;
+            for (const textTile of textTiles) {
+                centerScaledX(textTile.major, TEXT_TILE_WIDTH);
+                for (const minor of textTile.minors) centerScaledX(minor, TEXT_TILE_WIDTH);
+            }
+
+            const MOBILE_PAD = 0.08;
+
+            function mobileTile(textTile: TextSquare) {
+                const x = [textTile.major, 0.0 * s];
+                for (const minor of textTile.minors) x.push(0.04 * s, minor);
+                return x;
+            }
 
             const [elementAlignments, _] = yAligningWithGaps([
                 //
                 home,
-                0.1 * s,
+                MOBILE_PAD * s,
                 horizon,
-                0.1 * s,
+                MOBILE_PAD * s,
                 freshLook,
-                0.1 * s,
+                MOBILE_PAD * s,
                 greatBrands,
-                0.1 * s,
-                textTile1.major,
-                ...textTile1.minors,
-                0.1 * s,
+                MOBILE_PAD * s,
+                ...mobileTile(textTile1),
+                MOBILE_PAD * s,
                 insightClarity,
-                0.1 * s,
-                textTile2.major,
-                ...textTile2.minors,
-                0.1 * s,
+                MOBILE_PAD * s,
+                ...mobileTile(textTile2),
+                MOBILE_PAD * s,
                 skyward,
-                0.1 * s,
-                textTile3.major,
-                ...textTile3.minors,
+                MOBILE_PAD * s,
+                ...mobileTile(textTile3),
             ]);
             for (const { element, offset } of elementAlignments) {
                 element.style.top = px(offset);

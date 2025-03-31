@@ -21,16 +21,17 @@ function addQuote(quoteText: string, authorText: string, titleText: string): Quo
 }
 
 function styleQuote({ quote, author, title, openQuote, closeQuote }: QuoteDisplay) {
+    const s = getScrollHeight();
     const widthScale = 0.75;
-    styleScrollText(quote, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSizeScale: 0.032, widthScale, lineHeightScale: 0.065 });
+    styleScrollText(quote, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.032 * s, width: widthScale * s, lineHeight: 0.065 * s });
 
-    styleScrollText(author, { letterSpacing: 0.2, fontWeight: 350, color: "#000000", fontSizeScale: 0.035, widthScale, lineHeightScale: 0.06 });
+    styleScrollText(author, { letterSpacing: 0.2, fontWeight: 350, color: "#000000", fontSize: 0.035 * s, width: widthScale * s, lineHeight: 0.06 * s });
     author.style.textAlign = "right";
 
-    styleScrollText(title, { letterSpacing: 0.15, fontWeight: 350, color: "#000000", fontSizeScale: 0.025, widthScale, lineHeightScale: 0.06 });
+    styleScrollText(title, { letterSpacing: 0.15, fontWeight: 350, color: "#000000", fontSize: 0.025 * s, width: widthScale * s, lineHeight: 0.06 * s });
     title.style.textAlign = "right";
 
-    const quoteTextDetails = { letterSpacing: 0.2, fontWeight: 350, color: ieGreen, fontSizeScale: 0.15, widthScale: 0.05, lineHeightScale: 0.06 };
+    const quoteTextDetails = { letterSpacing: 0.2, fontWeight: 350, color: ieGreen, fontSize: 0.15 * s, width: 0.05 * s, lineHeight: 0.06 * s };
     styleScrollText(openQuote, quoteTextDetails);
     styleScrollText(closeQuote, quoteTextDetails);
 }

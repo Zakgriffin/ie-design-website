@@ -12,31 +12,32 @@ interface InspirationTile {
 }
 
 function styleInspirationTile({ image, major, minor, readMore }: InspirationTile) {
+    const s = getScrollHeight();
     styleScrollText(major, {
         letterSpacing: 0.6,
         fontWeight: 400,
         color: "#000000",
-        fontSizeScale: 0.036,
-        widthScale: INSPIRATION_TILE_WIDTH_PROPORTION,
-        lineHeightScale: 0.09,
+        fontSize: 0.036 * s,
+        width: INSPIRATION_TILE_WIDTH_PROPORTION * s,
+        lineHeight: 0.09 * s,
     });
 
     styleScrollText(minor, {
         letterSpacing: 0.3,
         fontWeight: 350,
         color: "#000000",
-        fontSizeScale: 0.027,
-        widthScale: INSPIRATION_TILE_WIDTH_PROPORTION,
-        lineHeightScale: 0.05,
+        fontSize: 0.027 * s,
+        width: INSPIRATION_TILE_WIDTH_PROPORTION * s,
+        lineHeight: 0.05 * s,
     });
 
     styleScrollText(readMore, {
         letterSpacing: 0.5,
         fontWeight: 400,
         color: ieBlue,
-        fontSizeScale: 0.03,
-        widthScale: INSPIRATION_TILE_WIDTH_PROPORTION,
-        lineHeightScale: 0.05,
+        fontSize: 0.03 * s,
+        width: INSPIRATION_TILE_WIDTH_PROPORTION * s,
+        lineHeight: 0.05 * s,
     });
 
     const scrollHeight = getScrollHeight();

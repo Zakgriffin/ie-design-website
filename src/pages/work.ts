@@ -75,25 +75,12 @@ const workContents: WorkContent[] = [
 ];
 
 function styleWorkDisplays(workDisplays: WorkDisplay[]) {
+    const s = getScrollHeight();
     for (const { textSquare, image1, image2 } of workDisplays) {
         styleScrollTextSquare(
             textSquare,
-            {
-                letterSpacing: 2.2,
-                fontWeight: 400,
-                color: "#333333",
-                fontSizeScale: 0.065,
-                widthScale: 1,
-                lineHeightScale: 0.09,
-            },
-            {
-                letterSpacing: 0.2,
-                fontWeight: 300,
-                color: "#333333",
-                fontSizeScale: 0.03,
-                widthScale: 1,
-                lineHeightScale: 0.05,
-            }
+            { letterSpacing: 2.2, fontWeight: 400, color: "#333333", fontSize: 0.065 * s, width: 1 * s, lineHeight: 0.09 * s },
+            { letterSpacing: 0.2, fontWeight: 300, color: "#333333", fontSize: 0.03 * s, width: 1 * s, lineHeight: 0.05 * s }
         );
         centerScaledY(image1, 1);
         centerScaledY(image2, 1);
