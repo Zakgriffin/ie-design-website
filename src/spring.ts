@@ -34,7 +34,17 @@ export function animateSpring(spring: Spring, signal: Signal) {
 
     spring.isAnimating = true;
 
-    function tickSpring() {
+    let lastMillis = 0;
+    requestAnimationFrame(firstFrame);
+    function firstFrame(millis: number) {
+        lastMillis = millis;
+        tickSpring(millis);
+    }
+
+    function tickSpring(millis: number) {
+        const step = millis - lastMillis;
+        lastMillis = millis;
+
         spring.tick(1 / 60);
         signal.update();
 
@@ -47,6 +57,4 @@ export function animateSpring(spring: Spring, signal: Signal) {
 
         requestAnimationFrame(tickSpring);
     }
-
-    tickSpring();
 }

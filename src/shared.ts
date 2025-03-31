@@ -1,11 +1,12 @@
-import { effect } from "./signal";
+import { effect, Signal } from "./signal";
 import { clickNavConnect } from "./pages/connect";
 import { clickNavEvolution } from "./pages/evolution";
 import { clickNavInspiration } from "./pages/inspiration";
 import { clickNavView } from "./pages/view";
 import { clickNavWork } from "./pages/work";
 import { getScrollHeight, getScrollWidth, isLandscape, notifyImageLoading, px, queueBeforeLayout } from "./layout";
-import { bodySig, ieBlue, ieGreen } from "./constants";
+import { body, bodySig, ieBlue, ieGreen } from "./constants";
+import { animateSpring, Spring } from "./spring";
 
 interface ScrollTextDetails {
     letterSpacing: number;
@@ -175,4 +176,72 @@ clickAnyNav(inspirationNav, clickNavInspiration);
 clickAnyNav(evolutionNav, clickNavEvolution);
 clickAnyNav(connectNav, clickNavConnect);
 
-setTimeout(() => viewNav.click());
+const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
+
+async function pluh() {
+    const response = await fetch("logo-full.svg"); // Assuming 'my-icon.svg' is in your public folder
+    const svgContent = await response.text();
+
+    const svg = new DOMParser().parseFromString(svgContent, "image/svg+xml").documentElement as unknown as SVGSVGElement;
+    svg.style.position = "absolute";
+    svg.style.opacity = "0";
+    body.appendChild(svg);
+
+    svg.style.height = px(innerHeight * 0.4);
+
+    await sleep(1000);
+
+    const svgSpring = new Spring(0);
+    svgSpring.setStiffnessCritical(50);
+    const svgSpringSig = new Signal();
+
+    const blue = svg.getElementById("blue-square") as SVGElement;
+
+    effect(() => {
+        svg.style.opacity = "" + svgSpring.position;
+        svg.style.height = px((1.3 - svgSpring.position) * innerHeight);
+        svg.style.top = px((innerHeight - svg.scrollHeight) / 2);
+        svg.style.left = px((innerWidth - svg.scrollWidth) / 2);
+    }, [svgSpringSig]);
+
+    svgSpring.target = 1;
+    animateSpring(svgSpring, svgSpringSig);
+
+    await sleep(1000);
+    const d = "design";
+
+    function opacityOut(element: SVGElement) {
+        const letterSpring = new Spring(1);
+        letterSpring.setStiffnessCritical(150);
+        const letterSpringSig = new Signal();
+
+        effect(() => {
+            element.style.opacity = "" + letterSpring.position;
+        }, [letterSpringSig]);
+
+        letterSpring.target = 0;
+        animateSpring(letterSpring, letterSpringSig);
+    }
+    for (let i = 0; i < d.length; i++) {
+        const designLetter = svg.getElementById("design-" + d[i]) as SVGElement;
+        opacityOut(designLetter);
+        await sleep(200);
+    }
+    const l = ["big-i", "dot-1", "big-e", "dot-2"];
+    for (let i = 0; i < l.length; i++) {
+        const designLetter = svg.getElementById(l[i]) as SVGElement;
+        opacityOut(designLetter);
+        await sleep(200);
+    }
+    await sleep(1000);
+
+    svgSpring.target = 0;
+    animateSpring(svgSpring, svgSpringSig);
+
+    await sleep(1000);
+    body.removeChild(svg);
+
+    viewNav.click();
+}
+
+pluh();
