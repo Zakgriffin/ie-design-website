@@ -5,7 +5,7 @@ import { clickNavInspiration } from "./pages/inspiration";
 import { clickNavView } from "./pages/view";
 import { clickNavWork } from "./pages/work";
 import { getScrollHeight, getScrollWidth, isLandscape, notifyImageLoading, px, queueBeforeLayout } from "./layout";
-import { body, bodySig } from "./constants";
+import { bodySig, ieBlue, ieGreen } from "./constants";
 
 interface ScrollTextDetails {
     letterSpacing: number;
@@ -30,6 +30,7 @@ export const connectNav = g("nav-connect");
 export const navItems = [viewNav, workNav, inspirationNav, evolutionNav, connectNav];
 
 export const scrollContainer = g("scroll-container");
+(scrollContainer.style as any).scrollbarColor = `${ieGreen} ${ieBlue}55`;
 
 export const logo = g("logo");
 
@@ -86,7 +87,6 @@ export function styleScrollText(scrollText: HTMLElement, s: ScrollTextDetails) {
     scrollText.style.fontWeight = "" + s.fontWeight;
     scrollText.style.color = s.color;
     scrollText.style.letterSpacing = px(s.letterSpacing);
-
     scrollText.style.fontSize = px(s.fontSize);
     scrollText.style.width = px(s.width);
     scrollText.style.lineHeight = px(s.lineHeight);

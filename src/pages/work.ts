@@ -1,7 +1,7 @@
 import { effect, Signal } from "../signal";
 import { animateSpring, Spring } from "../spring";
 import { addScrollImage, addScrollTextSquare, onNavOptionClick, scrollContainer, spaceToFile, styleScrollTextSquare, TextSquare } from "../shared";
-import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
+import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, notifyImageLoading, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
 import { body, bodySig } from "../constants";
 
 interface WorkContent {
@@ -134,8 +134,11 @@ export function clickNavWork() {
         tabElement.style.position = "absolute";
         tabElement.style.visibility = "hidden";
         tabElement.src = `work/${spaceToFile(workContent.name)}/tab.png`;
-        body.append(tabElement);
-        onNavOptionClick.push(() => body.removeChild(tabElement));
+        notifyImageLoading(tabElement);
+        queueBeforeLayout(() => {
+            body.appendChild(tabElement);
+            onNavOptionClick.push(() => body.removeChild(tabElement));
+        });
 
         const spring = new Spring(0);
         const springSig = new Signal();
@@ -160,7 +163,7 @@ export function clickNavWork() {
         tabElement.onclick = () => {
             for (const workItem of workItems) {
                 const { tabElement, spring, springSig } = workItem;
-                spring.target = 1;
+
                 tabElement.onmouseover = () => {
                     spring.target = mapRange(innerHeight - tabElement.width, BOTTOM(tabElement), TOP(tabElement), 0, 1);
                     animateSpring(spring, springSig);
@@ -169,12 +172,21 @@ export function clickNavWork() {
                     spring.target = 1;
                     animateSpring(spring, springSig);
                 };
+
+                spring.target = 1;
                 animateSpring(spring, springSig);
             }
 
-            populateWorkDisplays(workDisplays);
-            bodySig.update(); // hm dont like this
-            scrollContainer.scrollTo({ left: workDisplays[i].textSquare.major.scrollLeft });
+            if (workDisplays.length == 0) {
+                populateWorkDisplays(workDisplays);
+                bodySig.update(); // hm dont like this
+            }
+
+            // TODO this doesn't work quite right yet
+            setTimeout(() => {
+                const scrollPosition = workDisplays[i].textSquare.major.offsetLeft;
+                scrollContainer.scrollTo({ left: scrollPosition, behavior: "smooth" });
+            }, 100);
         };
 
         const timeoutHandle = setTimeout(() => {

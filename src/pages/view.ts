@@ -106,7 +106,6 @@ export function clickNavView() {
             }
 
             const [elementAlignments, _] = yAligningWithGaps([
-                //
                 home,
                 MOBILE_PAD * s,
                 horizon,

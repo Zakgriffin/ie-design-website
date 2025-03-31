@@ -8,7 +8,7 @@ interface ElementAlignment {
 }
 
 let imageLoadingPromises: Promise<void>[] = [];
-let queuedBeforeLayout: (() => void)[] = [];
+let queuedBeforeLayouts: (() => void)[] = [];
 
 export function px(pixels: number) {
     return pixels + "px";
@@ -21,9 +21,9 @@ export function mapRange(n: number, start1: number, stop1: number, start2: numbe
 export async function registerUpdateLayout(updateLayout: () => void) {
     const updateLayoutImageWaiting = async () => {
         await Promise.all(imageLoadingPromises);
-        for (const imageLoadingAppend of queuedBeforeLayout) imageLoadingAppend();
+        for (const queuedBeforeLayout of queuedBeforeLayouts) queuedBeforeLayout();
         imageLoadingPromises = [];
-        queuedBeforeLayout = [];
+        queuedBeforeLayouts = [];
         updateLayout();
     };
     effect(updateLayoutImageWaiting, [bodySig]);
@@ -33,7 +33,7 @@ export async function registerUpdateLayout(updateLayout: () => void) {
 }
 
 export function queueBeforeLayout(event: () => void) {
-    queuedBeforeLayout.push(event);
+    queuedBeforeLayouts.push(event);
 }
 
 export function notifyImageLoading(image: HTMLImageElement) {
