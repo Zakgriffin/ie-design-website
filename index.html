@@ -36,8 +36,8 @@
 
     #scroll-container {
         position: absolute;
-        overflow: hidden;
-        overflow-x: auto;
+        /* main scroll controller */
+        overflow: auto;
     }
 
     .navhead {
@@ -49,9 +49,11 @@
     }
 
     body {
-        overflow: hidden;
-        overscroll-behavior-x: none;
         background-color: #ffffff;
+        /* prevent wiggle */
+        overflow: hidden;
+        /* prevent page back */
+        overscroll-behavior-x: none;
     }
 
     * {
