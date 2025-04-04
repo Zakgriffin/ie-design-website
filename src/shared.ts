@@ -253,5 +253,5 @@ const hash = window.location.hash.substring(2);
 if (hash === "") animateIntro();
 else {
     const page = pages[hash] || pages["view"];
-    setTimeout(() => page.click());
+    setTimeout(() => page.navElement.click());
 }

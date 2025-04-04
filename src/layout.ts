@@ -96,6 +96,10 @@ export function alignScrollTextSquare({ major, minors }: TextSquare, majorToMino
     }
 }
 
+export function setWidth(element: HTMLElement, width: number) {
+    element.style.width = px(width);
+    if (element instanceof HTMLImageElement) element.style.height = px((width * element.naturalHeight) / element.naturalWidth);
+}
 export function setHeight(element: HTMLElement, height: number) {
     element.style.height = px(height);
     if (element instanceof HTMLImageElement) element.style.width = px((height * element.naturalWidth) / element.naturalHeight);
@@ -111,8 +115,7 @@ export function centerScaledY(element: HTMLElement, scale: number) {
 export function centerScaledX(element: HTMLElement, scale: number) {
     const s = getScrollWidth();
     const width = s * scale;
-    element.style.width = px(width);
-    if (element instanceof HTMLImageElement) element.style.height = px((width * element.naturalHeight) / element.naturalWidth);
+    setWidth(element, width);
     element.style.left = px((s - width) / 2);
 }
 
