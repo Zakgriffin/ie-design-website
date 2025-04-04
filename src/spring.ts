@@ -45,7 +45,7 @@ export function animateSpring(spring: Spring, signal: Signal) {
         const step = millis - lastMillis;
         lastMillis = millis;
 
-        spring.tick(1 / 60);
+        spring.tick(step / 1000);
         signal.update();
 
         if (Math.abs(spring.target - spring.position) < DEFAULT_ANIMATION_TOLERANCE && Math.abs(spring.velocity) < DEFAULT_ANIMATION_TOLERANCE) {

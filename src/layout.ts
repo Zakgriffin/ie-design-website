@@ -1,5 +1,5 @@
 import { bodySig } from "./constants";
-import { onNavOptionClick, scrollContainer, TextSquare } from "./shared";
+import { onNavOptionClick, TextSquare } from "./shared";
 import { effect } from "./signal";
 
 interface ElementAlignment {
@@ -51,7 +51,7 @@ export function getScrollWidth() {
 }
 
 export function alignWithGap(leftElement: HTMLElement, rightElement: HTMLElement, gap: number) {
-    rightElement.style.left = px(leftElement.offsetLeft + leftElement.clientWidth + gap);
+    rightElement.style.left = px(leftElement.offsetLeft + leftElement.offsetWidth + gap);
 }
 
 function axisAligningWithGaps(axisSize: (element: HTMLElement) => number) {
@@ -70,8 +70,8 @@ function axisAligningWithGaps(axisSize: (element: HTMLElement) => number) {
     };
 }
 
-export const yAligningWithGaps = axisAligningWithGaps((element) => element.clientHeight);
-export const xAligningWithGaps = axisAligningWithGaps((element) => element.clientWidth);
+export const yAligningWithGaps = axisAligningWithGaps((element) => element.offsetHeight);
+export const xAligningWithGaps = axisAligningWithGaps((element) => element.offsetWidth);
 
 export function alignScrollTextSquare({ major, minors }: TextSquare, majorToMinorGap: number, betweenMinorsGap: number) {
     const items: (HTMLElement | number)[] = [];
@@ -96,18 +96,24 @@ export function alignScrollTextSquare({ major, minors }: TextSquare, majorToMino
     }
 }
 
-export function centerScaledY(element: HTMLElement, scale: number) {
-    const height = scrollContainer.clientHeight * scale;
+export function setHeight(element: HTMLElement, height: number) {
     element.style.height = px(height);
     if (element instanceof HTMLImageElement) element.style.width = px((height * element.naturalWidth) / element.naturalHeight);
-    element.style.top = px((scrollContainer.clientHeight - height) / 2);
+}
+
+export function centerScaledY(element: HTMLElement, scale: number) {
+    const s = getScrollHeight();
+    const height = s * scale;
+    setHeight(element, height);
+    element.style.top = px((s - height) / 2);
 }
 
 export function centerScaledX(element: HTMLElement, scale: number) {
-    const width = scrollContainer.clientWidth * scale;
+    const s = getScrollWidth();
+    const width = s * scale;
     element.style.width = px(width);
     if (element instanceof HTMLImageElement) element.style.height = px((width * element.naturalHeight) / element.naturalWidth);
-    element.style.left = px((scrollContainer.clientWidth - width) / 2);
+    element.style.left = px((s - width) / 2);
 }
 
 export function isLandscape() {

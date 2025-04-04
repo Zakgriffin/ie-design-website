@@ -41,10 +41,13 @@ export function g(id: string) {
     return document.getElementById(id)!;
 }
 
+const FADE_IN_ANIMATION = "fadeIn ease 0.6s";
+
 export function addScrollImage(src: string): HTMLImageElement {
     const scrollImage = document.createElement("img");
     scrollImage.style.position = "absolute";
     scrollImage.src = src;
+    scrollImage.style.animation = FADE_IN_ANIMATION;
     notifyImageLoading(scrollImage);
     queueBeforeLayout(() => {
         scrollContainer.appendChild(scrollImage);
@@ -54,7 +57,7 @@ export function addScrollImage(src: string): HTMLImageElement {
     return scrollImage;
 }
 
-function clickAnyNav(navItem: HTMLElement, f: () => void) {
+function clickAnyNav(navItem: HTMLElement, f: () => void, pageName: string) {
     navItem.style.cursor = "pointer";
 
     navItem.onclick = () => {
@@ -68,12 +71,14 @@ function clickAnyNav(navItem: HTMLElement, f: () => void) {
         navItem.style.color = "#000000";
 
         f();
+        window.history.pushState({}, "", "/#/" + pageName);
     };
 }
 
 export function addScrollText(text: string) {
     const scrollText = document.createElement("p");
     scrollText.innerHTML = text;
+    scrollText.style.animation = FADE_IN_ANIMATION;
     queueBeforeLayout(() => {
         scrollContainer.append(scrollText);
     });
@@ -145,7 +150,7 @@ effect(() => {
         const x = 280;
 
         const scrollHeight = getScrollHeight();
-        scrollContainer.style.height = px(scrollHeight);
+        scrollContainer.style.height = px(0.85 * innerHeight);
         scrollContainer.style.width = px(innerWidth - x);
         scrollContainer.style.top = px((innerHeight - scrollHeight) / 2);
         scrollContainer.style.left = px(x);
@@ -168,18 +173,20 @@ effect(() => {
 //     scrollContainer.scrollBy({ left: deltaXY, top: deltaXY });
 // };
 
-clickAnyNav(logo, clickNavView);
+const pages: Record<string, { navElement: HTMLElement; click: () => void }> = {
+    view: { click: clickNavView, navElement: viewNav },
+    work: { click: clickNavWork, navElement: workNav },
+    inspiration: { click: clickNavInspiration, navElement: inspirationNav },
+    evolution: { click: clickNavEvolution, navElement: evolutionNav },
+    connect: { click: clickNavConnect, navElement: connectNav },
+};
 
-clickAnyNav(viewNav, clickNavView);
-clickAnyNav(workNav, clickNavWork);
-clickAnyNav(inspirationNav, clickNavInspiration);
-clickAnyNav(evolutionNav, clickNavEvolution);
-clickAnyNav(connectNav, clickNavConnect);
+for (const [pageName, page] of Object.entries(pages)) clickAnyNav(page.navElement, page.click, pageName);
 
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 
-async function pluh() {
-    const response = await fetch("logo-full.svg"); // Assuming 'my-icon.svg' is in your public folder
+async function animateIntro() {
+    const response = await fetch("logo-full.svg");
     const svgContent = await response.text();
 
     const svg = new DOMParser().parseFromString(svgContent, "image/svg+xml").documentElement as unknown as SVGSVGElement;
@@ -192,10 +199,8 @@ async function pluh() {
     await sleep(1000);
 
     const svgSpring = new Spring(0);
-    svgSpring.setStiffnessCritical(50);
+    svgSpring.setStiffnessCritical(80);
     const svgSpringSig = new Signal();
-
-    const blue = svg.getElementById("blue-square") as SVGElement;
 
     effect(() => {
         svg.style.opacity = "" + svgSpring.position;
@@ -225,23 +230,28 @@ async function pluh() {
     for (let i = 0; i < d.length; i++) {
         const designLetter = svg.getElementById("design-" + d[i]) as SVGElement;
         opacityOut(designLetter);
-        await sleep(200);
+        await sleep(120);
     }
     const l = ["big-i", "dot-1", "big-e", "dot-2"];
     for (let i = 0; i < l.length; i++) {
         const designLetter = svg.getElementById(l[i]) as SVGElement;
         opacityOut(designLetter);
-        await sleep(200);
+        await sleep(120);
     }
     await sleep(1000);
 
     svgSpring.target = 0;
     animateSpring(svgSpring, svgSpringSig);
 
-    await sleep(1000);
+    await sleep(500);
     body.removeChild(svg);
 
     viewNav.click();
 }
 
-pluh();
+const hash = window.location.hash.substring(2);
+if (hash === "") animateIntro();
+else {
+    const page = pages[hash] || pages["view"];
+    setTimeout(() => page.click());
+}

@@ -1,5 +1,5 @@
 import { ieGreen } from "../constants";
-import { centerScaledY, getScrollHeight, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
+import { centerScaledY, getScrollHeight, px, registerUpdateLayout, setHeight, xAligningWithGaps, yAligningWithGaps } from "../layout";
 import { addScrollImage, addScrollText, styleScrollText } from "../shared";
 
 interface QuoteDisplay {
@@ -63,7 +63,7 @@ function layoutQuote({ quote, author, title, openQuote, closeQuote }: QuoteDispl
 export function clickNavEvolution() {
     const evolution = addScrollImage("evolution/evolution.svg");
     const evolutionHistory = addScrollImage("evolution/evolution-history.svg");
-    // const logoFull = addScrollImage("evolution/logo-full.svg");
+    const logoFull = addScrollImage("logo-full.svg");
 
     const promos: HTMLImageElement[] = [];
     for (let i = 1; i <= 5; i++) promos.push(addScrollImage(`evolution/promo-${i}.jpg`));
@@ -86,13 +86,15 @@ export function clickNavEvolution() {
     ];
 
     registerUpdateLayout(() => {
+        const s = getScrollHeight();
+
         centerScaledY(evolution, 0.75);
-        centerScaledY(evolutionHistory, 0.3);
+        setHeight(evolutionHistory, 0.3 * s);
+        setHeight(logoFull, 0.45 * s);
 
         for (const promo of promos) centerScaledY(promo, 1);
         for (const quote of quotes) styleQuote(quote);
 
-        const s = getScrollHeight();
         const items: (HTMLElement | number)[] = [evolution, 0.2 * s, evolutionHistory];
 
         const maxLength = Math.max(quotes.length, promos.length);
@@ -106,6 +108,11 @@ export function clickNavEvolution() {
         for (const { element, offset } of elementAlignments) {
             element.style.left = px(offset);
         }
+
+        evolutionHistory.style.top = px(evolution.offsetTop + evolution.offsetHeight - evolutionHistory.offsetHeight);
+
+        logoFull.style.left = px(evolutionHistory.offsetLeft + (evolutionHistory.offsetWidth - logoFull.offsetWidth) / 2);
+        logoFull.style.top = px(evolutionHistory.offsetTop - logoFull.offsetHeight - 0.1 * s);
 
         for (const quote of quotes) layoutQuote(quote, 0.05 * s);
     });

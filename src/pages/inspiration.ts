@@ -98,8 +98,8 @@ export function clickNavInspiration() {
 
         for (const tile of tiles) styleInspirationTile(tile);
 
-        alignWithGap(inspiration, tiles[0].image, s * 0.25);
-        for (let i = 0; i < tiles.length - 1; i++) alignWithGap(tiles[i].image, tiles[i + 1].image, s * 0.1);
+        alignWithGap(inspiration, tiles[0].image, 0.25 * s);
+        for (let i = 0; i < tiles.length - 1; i++) alignWithGap(tiles[i].image, tiles[i + 1].image, 0.1 * s);
 
         for (const tile of tiles) alignInspirationTile(tile);
     });

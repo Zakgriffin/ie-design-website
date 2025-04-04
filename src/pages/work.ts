@@ -124,8 +124,8 @@ export function clickNavWork() {
     const workItems: WorkItem[] = [];
     const workDisplays: WorkDisplay[] = [];
 
-    const BOTTOM = (tabElement: HTMLImageElement) => (innerHeight - tabElement.clientHeight) / 2;
-    const TOP = (tabElement: HTMLImageElement) => innerHeight - tabElement.clientWidth / 2;
+    const BOTTOM = (tabElement: HTMLImageElement) => (innerHeight - tabElement.offsetHeight) / 2;
+    const TOP = (tabElement: HTMLImageElement) => innerHeight - tabElement.offsetWidth / 2;
 
     for (let i = 0; i < workContents.length; i++) {
         const workContent = workContents[i];
@@ -142,7 +142,7 @@ export function clickNavWork() {
 
         const spring = new Spring(0);
         const springSig = new Signal();
-        spring.setStiffnessCritical(1000);
+        spring.setStiffnessCritical(300);
 
         tabElement.onmouseover = () => {
             spring.target = -0.1;
