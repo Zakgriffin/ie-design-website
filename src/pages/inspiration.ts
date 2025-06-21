@@ -1,6 +1,6 @@
 import { ieBlue } from "../constants";
-import { alignWithGap, centerScaledY, getScrollHeight, px, registerUpdateLayout, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollText, styleScrollText } from "../shared";
+import { alignWithGap, centerScaledY, getScrollHeight, px, yAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollText, registerUpdateLayout, styleScrollText } from "../shared";
 
 const INSPIRATION_TILE_WIDTH_PROPORTION = 0.85;
 
@@ -13,35 +13,12 @@ interface InspirationTile {
 
 function styleInspirationTile({ image, major, minor, readMore }: InspirationTile) {
     const s = getScrollHeight();
-    styleScrollText(major, {
-        letterSpacing: 0.6,
-        fontWeight: 400,
-        color: "#000000",
-        fontSize: 0.036 * s,
-        width: INSPIRATION_TILE_WIDTH_PROPORTION * s,
-        lineHeight: 0.09 * s,
-    });
 
-    styleScrollText(minor, {
-        letterSpacing: 0.3,
-        fontWeight: 350,
-        color: "#000000",
-        fontSize: 0.027 * s,
-        width: INSPIRATION_TILE_WIDTH_PROPORTION * s,
-        lineHeight: 0.05 * s,
-    });
+    styleScrollText(major, { letterSpacing: 0.6, fontWeight: 400, color: "#000000", fontSize: 0.036 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.09 * s });
+    styleScrollText(minor, { letterSpacing: 0.3, fontWeight: 350, color: "#000000", fontSize: 0.027 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.05 * s });
+    styleScrollText(readMore, { letterSpacing: 0.5, fontWeight: 400, color: ieBlue, fontSize: 0.03 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.05 * s });
 
-    styleScrollText(readMore, {
-        letterSpacing: 0.5,
-        fontWeight: 400,
-        color: ieBlue,
-        fontSize: 0.03 * s,
-        width: INSPIRATION_TILE_WIDTH_PROPORTION * s,
-        lineHeight: 0.05 * s,
-    });
-
-    const scrollHeight = getScrollHeight();
-    image.style.height = px(scrollHeight * 0.55);
+    image.style.height = px(0.55 * s);
 }
 
 function alignInspirationTile({ image, major, minor, readMore }: InspirationTile) {

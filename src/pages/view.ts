@@ -1,6 +1,6 @@
 import { SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
-import { alignScrollTextSquare, centerScaledX, centerScaledY, getScrollHeight, getScrollWidth, isLandscape, px, registerUpdateLayout, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollTextSquare, styleScrollTextSquare, TextSquare } from "../shared";
+import { alignScrollTextSquare, centerScaledX, centerScaledY, getScrollHeight, getScrollWidth, isLandscape, px, TextSquare, xAligningWithGaps, yAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollTextSquare, registerUpdateLayout, styleScrollTextSquare } from "../shared";
 
 export function clickNavView() {
     const home = addScrollImage("view/home.svg");

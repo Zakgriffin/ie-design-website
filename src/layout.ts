@@ -1,5 +1,3 @@
-import { bodySig } from "./constants";
-import { onNavOptionClick, TextSquare } from "./shared";
 import { effect } from "./signal";
 
 interface ElementAlignment {
@@ -7,8 +5,10 @@ interface ElementAlignment {
     offset: number;
 }
 
-let imageLoadingPromises: Promise<void>[] = [];
-let queuedBeforeLayouts: (() => void)[] = [];
+export interface TextSquare {
+    major: HTMLElement;
+    minors: HTMLElement[];
+}
 
 export function px(pixels: number) {
     return pixels + "px";
@@ -16,28 +16,6 @@ export function px(pixels: number) {
 
 export function mapRange(n: number, start1: number, stop1: number, start2: number, stop2: number) {
     return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
-}
-
-export async function registerUpdateLayout(updateLayout: () => void) {
-    const updateLayoutImageWaiting = async () => {
-        await Promise.all(imageLoadingPromises);
-        for (const queuedBeforeLayout of queuedBeforeLayouts) queuedBeforeLayout();
-        imageLoadingPromises = [];
-        queuedBeforeLayouts = [];
-        updateLayout();
-    };
-    effect(updateLayoutImageWaiting, [bodySig]);
-    onNavOptionClick.push(() => bodySig.unsubscribe(updateLayoutImageWaiting));
-
-    updateLayoutImageWaiting();
-}
-
-export function queueBeforeLayout(event: () => void) {
-    queuedBeforeLayouts.push(event);
-}
-
-export function notifyImageLoading(image: HTMLImageElement) {
-    imageLoadingPromises.push(image.decode());
 }
 
 export function getScrollHeight() {

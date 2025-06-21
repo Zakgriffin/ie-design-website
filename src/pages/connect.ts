@@ -1,5 +1,5 @@
-import { centerScaledY, getScrollHeight, px, registerUpdateLayout, setWidth, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollText, styleScrollText } from "../shared";
+import { centerScaledY, getScrollHeight, px, setWidth, xAligningWithGaps, yAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollText, registerUpdateLayout, styleScrollText } from "../shared";
 
 function addIcon(imageSrc: string, clickLink: string) {
     const icon = addScrollImage(imageSrc);

@@ -1,8 +1,8 @@
 import { ieGreen } from "../constants";
-import { centerScaledY, getScrollHeight, px, registerUpdateLayout, setHeight, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollText, styleScrollText } from "../shared";
+import { centerScaledY, getScrollHeight, px, setHeight, xAligningWithGaps, yAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollText, registerUpdateLayout, styleScrollText } from "../shared";
 
-interface QuoteDisplay {
+interface Quote {
     quote: HTMLParagraphElement;
     author: HTMLParagraphElement;
     title: HTMLParagraphElement;
@@ -10,7 +10,7 @@ interface QuoteDisplay {
     closeQuote: HTMLParagraphElement;
 }
 
-function addQuote(quoteText: string, authorText: string, titleText: string): QuoteDisplay {
+function addQuote(quoteText: string, authorText: string, titleText: string): Quote {
     const quote = addScrollText(quoteText);
     const author = addScrollText(authorText);
     const title = addScrollText(titleText);
@@ -20,7 +20,7 @@ function addQuote(quoteText: string, authorText: string, titleText: string): Quo
     return { quote, author, title, openQuote, closeQuote };
 }
 
-function styleQuote({ quote, author, title, openQuote, closeQuote }: QuoteDisplay) {
+function styleQuote({ quote, author, title, openQuote, closeQuote }: Quote) {
     const s = getScrollHeight();
     const widthScale = 0.75;
     styleScrollText(quote, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.032 * s, width: widthScale * s, lineHeight: 0.065 * s });
@@ -36,7 +36,7 @@ function styleQuote({ quote, author, title, openQuote, closeQuote }: QuoteDispla
     styleScrollText(closeQuote, quoteTextDetails);
 }
 
-function layoutQuote({ quote, author, title, openQuote, closeQuote }: QuoteDisplay, nudge: number) {
+function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote, nudge: number) {
     const s = getScrollHeight();
 
     author.style.left = px(quote.offsetLeft);

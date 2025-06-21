@@ -4,8 +4,8 @@ import { clickNavEvolution } from "./pages/evolution";
 import { clickNavInspiration } from "./pages/inspiration";
 import { clickNavView } from "./pages/view";
 import { clickNavWork } from "./pages/work";
-import { getScrollHeight, getScrollWidth, isLandscape, notifyImageLoading, px, queueBeforeLayout } from "./layout";
-import { body, bodySig, ieBlue, ieGreen } from "./constants";
+import { getScrollHeight, getScrollWidth, isLandscape, px, TextSquare } from "./layout";
+import { body, bodySig, FADE_IN_ANIMATION, ieBlue, ieGreen } from "./constants";
 import { animateSpring, Spring } from "./spring";
 
 interface ScrollTextDetails {
@@ -17,31 +17,62 @@ interface ScrollTextDetails {
     lineHeight: number;
 }
 
-export interface TextSquare {
-    major: HTMLElement;
-    minors: HTMLElement[];
-}
-
-export const viewNav = g("nav-view");
-export const workNav = g("nav-work");
-export const inspirationNav = g("nav-inspiration");
-export const evolutionNav = g("nav-evolution");
-export const connectNav = g("nav-connect");
-
-export const navItems = [viewNav, workNav, inspirationNav, evolutionNav, connectNav];
-
-export const scrollContainer = g("scroll-container");
+export const scrollContainer = document.getElementById("scroll-container");
 (scrollContainer.style as any).scrollbarColor = `${ieGreen} ${ieBlue}55`;
 
-export const logo = g("logo");
+scrollContainer.onwheel = (e) => {
+    console.log("test");
+    scrollContainer.scrollBy({ left: e.deltaY });
+};
 
-export let onNavOptionClick: (() => void)[] = [];
+const pages = {
+    view: clickNavView,
+    work: clickNavWork,
+    inspiration: clickNavInspiration,
+    evolution: clickNavEvolution,
+    connect: clickNavConnect,
+};
 
-export function g(id: string) {
-    return document.getElementById(id)!;
+export let cleanUpLastPages: (() => void)[] = [];
+
+let imageLoadingPromises: Promise<void>[] = [];
+let queuedBeforeLayouts: (() => void)[] = [];
+let updateLayouts: (() => void)[] = [];
+
+async function runUpdateLayouts() {
+    if (waitingOnImages) return;
+
+    if (imageLoadingPromises.length) {
+        waitingOnImages = true;
+        await Promise.all(imageLoadingPromises);
+        waitingOnImages = false;
+
+        for (const queuedBeforeLayout of queuedBeforeLayouts) queuedBeforeLayout();
+
+        imageLoadingPromises = [];
+        queuedBeforeLayouts = [];
+    }
+
+    for (const updateLayout of updateLayouts) updateLayout();
 }
 
-const FADE_IN_ANIMATION = "fadeIn ease 0.6s";
+export async function registerUpdateLayout(updateLayout: () => void) {
+    updateLayouts.push(updateLayout);
+    await runUpdateLayouts();
+}
+
+let waitingOnImages = false;
+export function initializeUpdateLayout() {
+    effect(runUpdateLayouts, [bodySig]);
+}
+
+export function queueBeforeLayout(event: () => void) {
+    queuedBeforeLayouts.push(event);
+}
+
+export function notifyImageLoading(image: HTMLImageElement) {
+    imageLoadingPromises.push(image.decode());
+}
 
 export function addScrollImage(src: string): HTMLImageElement {
     const scrollImage = document.createElement("img");
@@ -51,28 +82,10 @@ export function addScrollImage(src: string): HTMLImageElement {
     notifyImageLoading(scrollImage);
     queueBeforeLayout(() => {
         scrollContainer.appendChild(scrollImage);
-        onNavOptionClick.push(() => scrollContainer.removeChild(scrollImage));
+        cleanUpLastPages.push(() => scrollContainer.removeChild(scrollImage));
     });
 
     return scrollImage;
-}
-
-function clickAnyNav(navItem: HTMLElement, f: () => void, pageName: string) {
-    navItem.style.cursor = "pointer";
-
-    navItem.onclick = () => {
-        for (const u of onNavOptionClick) u();
-        onNavOptionClick = [];
-
-        for (const n of navItems) {
-            n.style.color = "#808080";
-        }
-
-        navItem.style.color = "#000000";
-
-        f();
-        window.history.pushState({}, "", "/#/" + pageName);
-    };
 }
 
 export function addScrollText(text: string) {
@@ -81,8 +94,8 @@ export function addScrollText(text: string) {
     scrollText.style.animation = FADE_IN_ANIMATION;
     queueBeforeLayout(() => {
         scrollContainer.append(scrollText);
+        cleanUpLastPages.push(() => scrollContainer.removeChild(scrollText));
     });
-    onNavOptionClick.push(() => scrollContainer.removeChild(scrollText));
 
     return scrollText;
 }
@@ -115,38 +128,6 @@ export function spaceToFile(s: string) {
 
 effect(() => {
     if (isLandscape()) {
-        const leftAlign = 80;
-        logo.style.width = px(55);
-        logo.style.height = px(55);
-        logo.style.left = px(leftAlign);
-        logo.style.top = px(leftAlign / 2);
-
-        function alignNavItem(navItem: HTMLElement, nudge: number) {
-            navItem.style.left = px(leftAlign);
-            navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
-        }
-
-        alignNavItem(viewNav, -2);
-        alignNavItem(workNav, -1);
-        alignNavItem(inspirationNav, 0);
-        alignNavItem(evolutionNav, 1);
-        alignNavItem(connectNav, 2);
-    } else {
-        function goAway(element: HTMLElement) {
-            element.style.left = px(-1000);
-            element.style.right = px(-1000);
-        }
-        goAway(logo); // temporary
-        goAway(viewNav);
-        goAway(workNav);
-        goAway(inspirationNav);
-        goAway(evolutionNav);
-        goAway(connectNav);
-    }
-}, [bodySig]);
-
-effect(() => {
-    if (isLandscape()) {
         const x = 280;
 
         const scrollHeight = getScrollHeight();
@@ -172,16 +153,6 @@ effect(() => {
 //     const deltaXY = e.deltaX + e.deltaY;
 //     scrollContainer.scrollBy({ left: deltaXY, top: deltaXY });
 // };
-
-const pages: Record<string, { navElement: HTMLElement; click: () => void }> = {
-    view: { click: clickNavView, navElement: viewNav },
-    work: { click: clickNavWork, navElement: workNav },
-    inspiration: { click: clickNavInspiration, navElement: inspirationNav },
-    evolution: { click: clickNavEvolution, navElement: evolutionNav },
-    connect: { click: clickNavConnect, navElement: connectNav },
-};
-
-for (const [pageName, page] of Object.entries(pages)) clickAnyNav(page.navElement, page.click, pageName);
 
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -245,13 +216,137 @@ async function animateIntro() {
 
     await sleep(500);
     body.removeChild(svg);
-
-    viewNav.click();
 }
 
-const hash = window.location.hash.substring(2);
-if (hash === "") animateIntro();
-else {
-    const page = pages[hash] || pages["view"];
-    setTimeout(() => page.navElement.click());
+function createElementSVG<K extends keyof SVGElementTagNameMap>(qualifiedName: K) {
+    return document.createElementNS("http://www.w3.org/2000/svg", qualifiedName);
 }
+
+function addHeaderBar() {
+    const menuButton = createElementSVG("svg");
+    menuButton.style.position = "absolute";
+    menuButton.style.cursor = "pointer";
+    const size = 60;
+    const strokeWidth = 4;
+    menuButton.setAttribute("viewBox", `0 0 ${size} ${size}`);
+
+    function menuLine(y: number) {
+        const line = createElementSVG("line");
+        line.setAttribute("stroke-width", strokeWidth + "");
+        line.setAttribute("x1", 0 + "");
+        line.setAttribute("y1", y + "");
+        line.setAttribute("x2", size + "");
+        line.setAttribute("y2", y + "");
+        line.setAttribute("stroke", "#bbbbbb");
+        menuButton.appendChild(line);
+    }
+    menuLine(strokeWidth / 2 + 1);
+    menuLine(size / 2);
+    menuLine(size - strokeWidth / 2 - 1);
+
+    menuButton.onclick = () => {
+        const menu = document.createElement("div");
+        menu.style.position = "fixed";
+        menu.style.backgroundColor = "#000000ee";
+        menu.style.width = px(innerWidth);
+        menu.style.height = px(innerHeight);
+        body.appendChild(menu);
+
+        let i = 0;
+        for (const [pageName, _] of Object.entries(pages)) {
+            const menuPageNav = document.createElement("span");
+            menuPageNav.style.position = "absolute";
+            menuPageNav.innerText = pageName.toUpperCase();
+            menuPageNav.style.color = "white";
+            menuPageNav.style.fontFamily = "Spartan";
+            menuPageNav.style.fontSize = px(innerHeight * 0.05);
+            menuPageNav.style.fontWeight = "500";
+            menuPageNav.style.top = px(i * 200);
+            body.appendChild(menuPageNav);
+            i++;
+        }
+    };
+
+    body.appendChild(menuButton);
+
+    return menuButton;
+}
+
+function addMainElements() {
+    const menuButton = addHeaderBar();
+    const navElementFromString: Record<string, HTMLElement> = {};
+
+    for (const [pageName, click] of Object.entries(pages)) {
+        const navElement = document.createElement("div");
+        navElement.innerHTML = pageName.toUpperCase();
+
+        navElement.style.animation = FADE_IN_ANIMATION;
+        navElement.style.position = "absolute";
+        navElement.style.fontFamily = "Spartan";
+        navElement.style.color = "#808080";
+        navElement.style.fontSize = px(13);
+        navElement.style.fontWeight = "500";
+        navElement.style.cursor = "pointer";
+
+        navElement.onclick = () => {
+            for (const cleanUpLastPage of cleanUpLastPages) cleanUpLastPage();
+            cleanUpLastPages = [];
+            updateLayouts = [];
+
+            for (const navElement of Object.values(navElements)) navElement.style.color = "#808080";
+            navElement.style.color = "#000000";
+
+            click();
+            // history.pushState({}, "", "/#/" + pageName);
+        };
+
+        body.appendChild(navElement);
+
+        navElementFromString[pageName] = navElement;
+    }
+
+    const navElements = Object.values(navElementFromString);
+
+    effect(() => {
+        const size = innerWidth * 0.03;
+        menuButton.style.width = px(size);
+        menuButton.style.height = px(size);
+        const fromEdge = innerWidth * 0.02;
+        menuButton.style.left = px(innerWidth - size - fromEdge);
+        menuButton.style.top = px(fromEdge);
+
+        if (isLandscape()) {
+            const leftAlign = 80;
+            // logo.style.width = px(55);
+            // logo.style.height = px(55);
+            // logo.style.left = px(leftAlign);
+            // logo.style.top = px(leftAlign / 2);
+
+            function alignNavItem(navItem: HTMLElement, nudge: number) {
+                navItem.style.left = px(leftAlign);
+                navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
+            }
+
+            for (let i = 0; i < navElements.length; i++) alignNavItem(navElements[i], i - 2);
+        } else {
+            function goAway(element: HTMLElement) {
+                element.style.left = px(-1000);
+                element.style.right = px(-1000);
+            }
+
+            for (let i = 0; i < navElements.length; i++) goAway(navElements[i]);
+        }
+    }, [bodySig]);
+
+    const pageNavElement = navElementFromString[pageName] ?? navElementFromString.view;
+    pageNavElement.click();
+}
+
+const pageName = location.hash.substring("#/".length);
+
+async function setup() {
+    initializeUpdateLayout();
+    // if (pageName === "") await animateIntro();
+    addMainElements();
+}
+setup();

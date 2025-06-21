@@ -1,7 +1,7 @@
 import { effect, Signal } from "../signal";
 import { animateSpring, Spring } from "../spring";
-import { addScrollImage, addScrollTextSquare, onNavOptionClick, scrollContainer, spaceToFile, styleScrollTextSquare, TextSquare } from "../shared";
-import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, notifyImageLoading, px, queueBeforeLayout, registerUpdateLayout, xAligningWithGaps } from "../layout";
+import { addScrollImage, addScrollTextSquare, notifyImageLoading, cleanUpLastPages, queueBeforeLayout, registerUpdateLayout, scrollContainer, spaceToFile, styleScrollTextSquare } from "../shared";
+import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, px, TextSquare, xAligningWithGaps } from "../layout";
 import { body, bodySig } from "../constants";
 
 interface WorkContent {
@@ -9,16 +9,17 @@ interface WorkContent {
     description: string[];
 }
 
-interface WorkDisplay {
+interface WorkItem {
     textSquare: TextSquare;
     image1: HTMLImageElement;
     image2: HTMLImageElement;
 }
 
-interface WorkItem {
+interface WorkTab {
     tabElement: HTMLImageElement;
     spring: Spring;
     springSig: Signal;
+    workItem: WorkItem;
 }
 
 const workContents: WorkContent[] = [
@@ -74,58 +75,63 @@ const workContents: WorkContent[] = [
     },
 ];
 
-function styleWorkDisplays(workDisplays: WorkDisplay[]) {
+function styleWorkItems(workTabs: WorkTab[]) {
     const s = getScrollHeight();
-    for (const { textSquare, image1, image2 } of workDisplays) {
+    for (const workTab of workTabs) {
+        const { workItem } = workTab;
         styleScrollTextSquare(
-            textSquare,
+            workItem.textSquare,
             { letterSpacing: 2.2, fontWeight: 400, color: "#333333", fontSize: 0.065 * s, width: 1 * s, lineHeight: 0.09 * s },
             { letterSpacing: 0.2, fontWeight: 300, color: "#333333", fontSize: 0.03 * s, width: 1 * s, lineHeight: 0.05 * s }
         );
-        centerScaledY(image1, 1);
-        centerScaledY(image2, 1);
+        centerScaledY(workItem.image1, 1);
+        centerScaledY(workItem.image2, 1);
     }
 }
 
-function populateWorkDisplays(workDisplays: WorkDisplay[]) {
-    for (const workContent of workContents) {
-        const textSquare = addScrollTextSquare(workContent.name.toUpperCase(), ...workContent.description);
-        const image1 = addScrollImage(`work/${spaceToFile(workContent.name)}/1.jpg`);
-        const image2 = addScrollImage(`work/${spaceToFile(workContent.name)}/2.jpg`);
-
-        workDisplays.push({ textSquare, image1, image2 });
-    }
-}
-
-function layoutWorkDisplays(workDisplays: WorkDisplay[]) {
-    const items = [];
+function layoutWorkItems(workTabs: WorkTab[]) {
     const s = getScrollHeight();
 
-    for (const { textSquare, image1, image2 } of workDisplays) {
+    const items = [];
+    for (const workTab of workTabs) {
+        const { workItem } = workTab;
         items.push(
             //
-            textSquare.major,
+            workItem.textSquare.major,
             0.2 * s,
-            image1,
+            workItem.image1,
             0.15 * s,
-            image2,
+            workItem.image2,
             0.22 * s
         );
     }
-
     const [elementAlignments, _] = xAligningWithGaps(items);
 
     for (const { element, offset } of elementAlignments) {
         element.style.left = px(offset);
     }
+
+    for (const workTab of workTabs) alignScrollTextSquare(workTab.workItem.textSquare, 0.01 * s, 0.01 * s);
 }
 
 export function clickNavWork() {
-    const workItems: WorkItem[] = [];
-    const workDisplays: WorkDisplay[] = [];
+    const workTabs: WorkTab[] = [];
 
-    const BOTTOM = (tabElement: HTMLImageElement) => (innerHeight - tabElement.offsetHeight) / 2;
-    const TOP = (tabElement: HTMLImageElement) => innerHeight - tabElement.offsetWidth / 2;
+    // function tabAlignment(tabElement: HTMLImageElement) {
+    //     const { width, height } = tabElementSize(tabElement);
+
+    //     return {
+    //         centered: () => (innerHeight - height) / 2,
+    //         halfSquare: () => innerHeight - width / 2,
+    //         square: () => innerHeight - width,
+    //     };
+    // }
+
+    (scrollContainer.style as any).scrollbarWidth = "none";
+    cleanUpLastPages.push(() => ((scrollContainer.style as any).scrollbarWidth = ""));
+
+    let tabsShowing = true;
+    let currentWorkItem: WorkItem | undefined;
 
     for (let i = 0; i < workContents.length; i++) {
         const workContent = workContents[i];
@@ -137,92 +143,118 @@ export function clickNavWork() {
         notifyImageLoading(tabElement);
         queueBeforeLayout(() => {
             body.appendChild(tabElement);
-            onNavOptionClick.push(() => body.removeChild(tabElement));
+            cleanUpLastPages.push(() => body.removeChild(tabElement));
         });
 
         const spring = new Spring(0);
         const springSig = new Signal();
         spring.setStiffnessCritical(300);
 
+        let isHovered = false;
+        function updateTabPositions() {
+            for (const workTab of workTabs) {
+                function setSpringTarget(target: number) {
+                    workTab.spring.target = target;
+                    animateSpring(workTab.spring, workTab.springSig);
+                }
+
+                if (tabsShowing) {
+                    if (isHovered) setSpringTarget(100);
+                    else setSpringTarget(200);
+                } else {
+                    if (isHovered || currentWorkItem === workTab.workItem) setSpringTarget(300);
+                    else setSpringTarget(400);
+                }
+            }
+        }
+
         tabElement.onmouseover = () => {
-            spring.target = -0.1;
-            animateSpring(spring, springSig);
+            isHovered = true;
+            updateTabPositions();
         };
-
         tabElement.onmouseleave = () => {
-            spring.target = 0;
-            animateSpring(spring, springSig);
+            isHovered = false;
+            updateTabPositions();
         };
 
-        effect(() => {
-            const k = mapRange(spring.position, 0, 1, BOTTOM(tabElement), TOP(tabElement));
-            tabElement.style.top = px(k);
-        }, [springSig, bodySig]);
-        springSig.update();
+        async function onFirstClick() {
+            for (let i = 0; i < workTabs.length; i++) {
+                const workContent = workContents[i];
+                const textSquare = addScrollTextSquare(workContent.name.toUpperCase(), ...workContent.description);
+                const image1 = addScrollImage(`work/${spaceToFile(workContent.name)}/1.jpg`);
+                const image2 = addScrollImage(`work/${spaceToFile(workContent.name)}/2.jpg`);
 
-        tabElement.onclick = () => {
-            for (const workItem of workItems) {
-                const { tabElement, spring, springSig } = workItem;
-
-                tabElement.onmouseover = () => {
-                    spring.target = mapRange(innerHeight - tabElement.width, BOTTOM(tabElement), TOP(tabElement), 0, 1);
-                    animateSpring(spring, springSig);
-                };
-                tabElement.onmouseleave = () => {
-                    spring.target = 1;
-                    animateSpring(spring, springSig);
-                };
-
-                spring.target = 1;
-                animateSpring(spring, springSig);
+                workTabs[i].workItem = { textSquare, image1, image2 };
             }
 
-            if (workDisplays.length == 0) {
-                populateWorkDisplays(workDisplays);
-                bodySig.update(); // hm dont like this
-            }
+            scrollContainer.addEventListener("scroll", () => {
+                for (const workTab of workTabs) {
+                    const lastImage = workTab.workItem.image2;
+                    if (scrollContainer.scrollLeft < lastImage.offsetLeft + lastImage.offsetWidth) {
+                        currentWorkItem = workTab.workItem;
+                        break;
+                    }
+                }
+                updateTabPositions();
+            });
 
-            // TODO this doesn't work quite right yet
-            setTimeout(() => {
-                const scrollPosition = workDisplays[i].textSquare.major.offsetLeft;
+            function selectWorkTab(workTab: WorkTab) {
+                const scrollPosition = workTab.workItem.textSquare.major.offsetLeft;
                 scrollContainer.scrollTo({ left: scrollPosition, behavior: "smooth" });
-            }, 100);
-        };
+            }
+
+            for (const workTab of workTabs) workTab.tabElement.onclick = () => selectWorkTab(workTab);
+
+            tabsShowing = false;
+            updateTabPositions();
+
+            await registerUpdateLayout(() => {
+                styleWorkItems(workTabs);
+                layoutWorkItems(workTabs);
+            });
+
+            selectWorkTab(workTabs[i]);
+        }
+
+        tabElement.onclick = onFirstClick;
 
         const timeoutHandle = setTimeout(() => {
-            spring.position = 1;
             tabElement.style.visibility = "visible";
-            animateSpring(spring, springSig);
+            // spring.position = innerHeight;
+            // animateSpring(spring, springSig);
         }, 80 * i);
-        onNavOptionClick.push(() => clearInterval(timeoutHandle));
+        cleanUpLastPages.push(() => clearInterval(timeoutHandle));
 
-        workItems.push({ tabElement, spring, springSig });
+        workTabs.push({ tabElement, spring, springSig, workItem: undefined });
+
+        effect(() => {
+            tabElement.style.top = px(spring.position);
+        }, [springSig]);
     }
 
     registerUpdateLayout(() => {
-        for (let i = 0; i < workItems.length; i++) {
-            const { tabElement } = workItems[i];
+        const start = 300;
+        const end = innerWidth - 150;
 
-            const start = 300;
-            const end = innerWidth - 150;
+        const anyTabElement = workTabs[0].tabElement;
+        const width = (end - start) / (workTabs.length * 2 - 1);
+        const height = width * (anyTabElement.naturalHeight / anyTabElement.naturalWidth);
 
-            const width = (end - start) / (workItems.length * 2 - 1);
-            const height = width * (tabElement.naturalHeight / tabElement.naturalWidth);
+        for (let i = 0; i < workTabs.length; i++) {
+            const { tabElement } = workTabs[i];
 
-            const k = innerHeight * 0.8;
-            if (height < k) {
+            const heightLowerLimit = innerHeight * 0.8;
+            if (height < heightLowerLimit) {
                 tabElement.style.width = px(width);
                 tabElement.style.height = px(height);
             } else {
-                tabElement.style.height = px(k);
-                tabElement.style.width = px(k * (tabElement.naturalWidth / tabElement.naturalHeight));
+                tabElement.style.height = px(heightLowerLimit);
+                tabElement.style.width = px(heightLowerLimit * (tabElement.naturalWidth / tabElement.naturalHeight));
             }
-            tabElement.style.left = px(start + i * width * 2);
+        }
 
-            styleWorkDisplays(workDisplays);
-            const s = getScrollHeight();
-            for (const workDisplay of workDisplays) alignScrollTextSquare(workDisplay.textSquare, 0.01 * s, 0.01 * s);
-            layoutWorkDisplays(workDisplays);
+        for (let i = 0; i < workTabs.length; i++) {
+            workTabs[i].tabElement.style.left = px(start + i * width * 2);
         }
     });
 }
