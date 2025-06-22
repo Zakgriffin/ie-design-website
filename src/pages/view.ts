@@ -1,7 +1,7 @@
 import { SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
 import { aligningWithGapsX, aligningWithGapsY, isLandscape, px } from "../layout";
 import { registerUpdateLayout } from "../page";
-import { addScrollImage, addScrollTextSquare, alignScrollTextSquare, centerWithinScrollX, centerWithinScrollY, getScrollHeight, getScrollWidth, styleScrollTextSquare, TextSquare } from "../scroll";
+import { addScrollImage, addScrollPadding, addScrollTextSquare, alignScrollTextSquare, centerWithinScrollX, centerWithinScrollY, getScrollHeight, getScrollWidth, scrollContainer, styleScrollTextSquare, TextSquare } from "../scroll";
 
 export function addViewPage() {
     const home = addScrollImage("view/home.svg");
@@ -27,6 +27,8 @@ export function addViewPage() {
     );
 
     const textTiles = [textTile1, textTile2, textTile3];
+
+    const scrollPadding = addScrollPadding();
 
     registerUpdateLayout(() => {
         const HOME_HORIZON_PAD = 0.2;
@@ -68,6 +70,8 @@ export function addViewPage() {
                 skyward,
                 IMAGE_TEXT_SQUARE_PAD * s,
                 textTile3.major,
+                IMAGE_TEXT_SQUARE_PAD * s,
+                scrollPadding,
             ]);
 
             for (const { element, offset } of elementAlignments) {
@@ -124,6 +128,7 @@ export function addViewPage() {
                 skyward,
                 MOBILE_PAD * s,
                 ...mobileTile(textTile3),
+                scrollPadding,
             ]);
             for (const { element, offset } of elementAlignments) {
                 element.style.top = px(offset);

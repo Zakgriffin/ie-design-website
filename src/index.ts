@@ -1,13 +1,13 @@
-import { colorOnHover, createElementSVG, setAttributes, sleep } from "../util";
-import { FADE_IN_ANIMATION, body, bodySig } from "./constants";
-import { centerElement, isLandscape, px, yCenterWithGap } from "./layout";
+import { colorOnHover, createElementSVG, setAttributes, sleep } from "./util";
+import { body, bodySig, fadeInAnimation, gray, ieGreen } from "./constants";
+import { centerElement, isLandscape, px, styleText, yCenterWithGap } from "./layout";
 import { cleanLastPage } from "./page";
 import { addConnectPage } from "./pages/connect";
 import { addEvolutionPage } from "./pages/evolution";
 import { addInspirationPage } from "./pages/inspiration";
 import { addViewPage } from "./pages/view";
 import { addWorkPage } from "./pages/work";
-import { scrollContainer } from "./scroll";
+import { getScrollHeight, scrollContainer } from "./scroll";
 import { Signal, effect } from "./signal";
 import { Spring, animateSpring } from "./spring";
 
@@ -15,16 +15,13 @@ import { Spring, animateSpring } from "./spring";
 // strange second scrollbar on mobile
 // mobile layouts
 // blog pages
-// mobile menu
 // timeline
-// fade in direction
-// space at end of scroll container
 // nav item styling
-// connect logo squares
-// end quotes
 // work page
-// logo top left
 // image click
+// hit end of scroll, next page
+// simpler rectangle scroll bar
+// "view" start animation
 
 const pages = {
     view: addViewPage,
@@ -35,6 +32,10 @@ const pages = {
 };
 
 const navElementFromString: Record<string, HTMLElement> = {};
+
+const edgeAlignX = () => innerHeight * 0.1;
+const edgeAlignY = () => innerHeight * 0.1;
+const headerIconSize = () => innerHeight * 0.06;
 
 async function animateIntro() {
     // ZZZZ clean this up
@@ -100,15 +101,15 @@ async function animateIntro() {
 }
 
 function addMenuButton() {
-    const menuGray = "#808080";
     const menuButton = createElementSVG("svg");
     menuButton.style.position = "absolute";
     menuButton.style.cursor = "pointer";
     menuButton.style.zIndex = "1";
-    const size = 60;
+    menuButton.style.animation = fadeInAnimation();
     const strokeWidth = 4;
     const pad = 4;
-    menuButton.setAttribute("viewBox", `${-pad} ${-pad} ${size + 2 * pad} ${size + 2 * pad}`);
+    const sz = 60;
+    menuButton.setAttribute("viewBox", `${-pad} ${-pad} ${sz + 2 * pad} ${sz + 2 * pad}`);
 
     function menuLine(y: number) {
         const line = createElementSVG("line");
@@ -117,18 +118,18 @@ function addMenuButton() {
         return line;
     }
     const line1 = menuLine(strokeWidth / 2 + 1);
-    const line2 = menuLine(size / 2);
-    const line3 = menuLine(size - strokeWidth / 2 - 1);
+    const line2 = menuLine(sz / 2);
+    const line3 = menuLine(sz - strokeWidth / 2 - 1);
 
     const menuSpring = new Spring(0);
     menuSpring.setStiffnessCritical(120);
     const menuSpringSig = new Signal();
     effect(() => {
-        const s = menuSpring.position * size;
-        setAttributes(line1, { x1: 0, y1: 0, x2: size, y2: s });
-        line2.style.opacity = (size - s) / size + "";
-        setAttributes(line2, { x1: 0, y1: size / 2, x2: size, y2: size / 2 });
-        setAttributes(line3, { x1: 0, y1: size, x2: size, y2: size - s });
+        const s = menuSpring.position * sz;
+        setAttributes(line1, { x1: 0, y1: 0, x2: sz, y2: s });
+        line2.style.opacity = (sz - s) / sz + "";
+        setAttributes(line2, { x1: 0, y1: sz / 2, x2: sz, y2: sz / 2 });
+        setAttributes(line3, { x1: 0, y1: sz, x2: sz, y2: sz - s });
     }, [menuSpringSig]);
 
     let isOpeningMenu = false;
@@ -148,7 +149,7 @@ function addMenuButton() {
     };
 
     function beginOpenMenu() {
-        menuButton.style.stroke = menuGray;
+        menuButton.style.stroke = gray;
         menuSpring.target = 1;
         animateSpring(menuSpring, menuSpringSig);
         isOpeningMenu = true;
@@ -178,7 +179,7 @@ function addMenuButton() {
             menuPageNav.style.fontFamily = "Spartan";
             menuPageNav.style.fontWeight = "500";
             menuPageNav.style.cursor = "pointer";
-            colorOnHover(menuPageNav, menuGray, "white");
+            colorOnHover(menuPageNav, gray, "white");
 
             menuPageNav.onclick = () => {
                 beginCloseMenu();
@@ -207,7 +208,6 @@ function addMenuButton() {
         };
 
         effect(layoutMenu, [bodySig]);
-        layoutMenu();
 
         closeMenu = () => {
             bodySig.unsubscribe(layoutMenu);
@@ -220,12 +220,12 @@ function addMenuButton() {
     body.appendChild(menuButton);
 
     effect(() => {
-        const size = innerHeight * 0.05;
+        const size = headerIconSize();
         menuButton.style.width = px(size);
         menuButton.style.height = px(size);
 
-        const fromEdge =scrollContainer.offsetTop / 2 - size / 2;
-        menuButton.style.left = px(innerWidth - size - fromEdge);
+        const fromEdge = scrollContainer.offsetTop / 2 - size / 2;
+        menuButton.style.left = px(innerWidth - size - edgeAlignX());
         menuButton.style.top = px(fromEdge);
     }, [bodySig]);
 }
@@ -235,18 +235,17 @@ function addNavItems() {
         const navElement = document.createElement("div");
         navElement.innerHTML = pageName.toUpperCase();
 
-        navElement.style.animation = FADE_IN_ANIMATION;
+        navElement.style.animation = fadeInAnimation();
         navElement.style.position = "absolute";
         navElement.style.fontFamily = "Spartan";
-        navElement.style.color = "#808080";
-        navElement.style.fontSize = px(13);
+        navElement.style.color = gray;
         navElement.style.fontWeight = "500";
         navElement.style.cursor = "pointer";
 
         navElement.onclick = () => {
             cleanLastPage();
 
-            for (const navElement of Object.values(navElements)) navElement.style.color = "#808080";
+            for (const navElement of Object.values(navElements)) navElement.style.color = gray;
             navElement.style.color = "#000000";
 
             addPage();
@@ -262,14 +261,18 @@ function addNavItems() {
 
     effect(() => {
         if (isLandscape()) {
-            const leftAlign = 80;
-
+            const s = getScrollHeight();
             function alignNavItem(navItem: HTMLElement, nudge: number) {
-                navItem.style.left = px(leftAlign);
+                navItem.style.left = px(edgeAlignX());
                 navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
             }
 
-            for (let i = 0; i < navElements.length; i++) alignNavItem(navElements[i], i - 2);
+            for (let i = 0; i < navElements.length; i++) {
+                const navItem = navElements[i];
+                alignNavItem(navItem, i - 2);
+
+                navItem.style.fontSize = px(s * 0.025);
+            }
         } else {
             function goAway(element: HTMLElement) {
                 element.style.left = px(-1000);
@@ -281,12 +284,88 @@ function addNavItems() {
     }, [bodySig]);
 }
 
+function addLogo() {
+    const logo = document.createElement("img");
+    logo.style.animation = fadeInAnimation();
+    logo.style.position = "absolute";
+    logo.style.cursor = "pointer";
+    logo.src = "logo.svg";
+    body.appendChild(logo);
+
+    logo.onclick = () => {
+        navElementFromString.view.click();
+
+        const pulse = document.createElement("div");
+        pulse.style.position = "absolute";
+        pulse.style.background = ieGreen;
+        pulse.style.pointerEvents = "none";
+        body.appendChild(pulse);
+
+        const pulseSpring = new Spring(0);
+        pulseSpring.setStiffnessCritical(40);
+        const pulseSpringSig = new Signal();
+
+        pulseSpring.target = 1;
+        animateSpring(pulseSpring, pulseSpringSig);
+
+        function animatePulse() {
+            const s = pulseSpring.position;
+            const out = 30;
+            pulse.style.left = px(logo.offsetLeft - s * out);
+            pulse.style.top = px(logo.offsetTop - s * out);
+
+            pulse.style.width = px(logo.offsetWidth + s * 2 * out);
+            pulse.style.height = px(logo.offsetHeight + s * 2 * out);
+
+            pulse.style.opacity = 1 - s + "";
+        }
+
+        pulseSpring.onRest = () => {
+            pulseSpringSig.unsubscribe(animatePulse);
+            body.removeChild(pulse);
+        };
+
+        effect(animatePulse, [pulseSpringSig]);
+    };
+
+    effect(() => {
+        const size = headerIconSize();
+        logo.style.width = px(size);
+        logo.style.height = px(size);
+
+        const fromTop = scrollContainer.offsetTop / 2 - size / 2;
+        logo.style.left = px(edgeAlignX());
+        logo.style.top = px(fromTop);
+    }, [bodySig]);
+}
+
+function addCopyright() {
+    const copyright = document.createElement("span");
+    copyright.style.position = "absolute";
+    copyright.innerText = "©2025 i.e. design, inc.";
+
+    styleText(copyright, { letterSpacing: 0.3, fontWeight: 500, color: gray, fontSize: 10, lineHeight: 20 });
+
+    body.appendChild(copyright);
+
+    effect(() => {
+        if (isLandscape()) {
+            copyright.style.left = px(edgeAlignX());
+            copyright.style.top = px(innerHeight * 0.9);
+        } else {
+            // ZZZZ do it
+        }
+    }, [bodySig]);
+}
+
 async function setup() {
+    const pageName = location.hash.substring("#/".length);
     // if (pageName === "") await animateIntro();
     addMenuButton();
     addNavItems();
+    addLogo();
+    addCopyright();
 
-    const pageName = location.hash.substring("#/".length);
     const pageNavElement = navElementFromString[pageName] ?? navElementFromString.view;
     pageNavElement.click();
 }

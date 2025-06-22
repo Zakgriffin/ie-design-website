@@ -1,7 +1,7 @@
 import { ieBlue } from "../constants";
-import { alignWithGap, aligningWithGapsY, px } from "../layout";
+import { alignWithGap, aligningWithGapsY, px, styleText } from "../layout";
 import { registerUpdateLayout } from "../page";
-import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight, styleScrollText } from "../scroll";
+import { addScrollImage, addScrollPadding, addScrollText, centerWithinScrollY, getScrollHeight } from "../scroll";
 
 const INSPIRATION_TILE_WIDTH_PROPORTION = 0.85;
 
@@ -15,9 +15,9 @@ interface InspirationTile {
 function styleInspirationTile({ image, major, minor, readMore }: InspirationTile) {
     const s = getScrollHeight();
 
-    styleScrollText(major, { letterSpacing: 0.6, fontWeight: 400, color: "#000000", fontSize: 0.036 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.09 * s });
-    styleScrollText(minor, { letterSpacing: 0.3, fontWeight: 350, color: "#000000", fontSize: 0.027 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.05 * s });
-    styleScrollText(readMore, { letterSpacing: 0.5, fontWeight: 400, color: ieBlue, fontSize: 0.03 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.05 * s });
+    styleText(major, { letterSpacing: 0.6, fontWeight: 400, color: "#000000", fontSize: 0.036 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.09 * s });
+    styleText(minor, { letterSpacing: 0.3, fontWeight: 350, color: "#000000", fontSize: 0.027 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.05 * s });
+    styleText(readMore, { letterSpacing: 0.5, fontWeight: 400, color: ieBlue, fontSize: 0.03 * s, width: INSPIRATION_TILE_WIDTH_PROPORTION * s, lineHeight: 0.05 * s });
 
     image.style.height = px(0.55 * s);
 }
@@ -69,6 +69,8 @@ export function addInspirationPage() {
         addInspirationTile("inspiration/new-studio.jpg", "NEW STUDIO. NEW VIEW.", "How the need for inspiration fueled the building of a studio."),
     ];
 
+    const scrollPadding = addScrollPadding();
+
     registerUpdateLayout(() => {
         const s = getScrollHeight();
 
@@ -80,5 +82,8 @@ export function addInspirationPage() {
         for (let i = 0; i < tiles.length - 1; i++) alignWithGap(tiles[i].image, tiles[i + 1].image, 0.1 * s);
 
         for (const tile of tiles) alignInspirationTile(tile);
+
+        const lastImage = tiles[tiles.length - 1].image;
+        scrollPadding.style.left = px(lastImage.offsetLeft + lastImage.offsetWidth + 0.1 * s);
     });
 }

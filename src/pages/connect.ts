@@ -1,6 +1,6 @@
-import { aligningWithGapsX, aligningWithGapsY, px, setWidth } from "../layout";
+import { aligningWithGapsX, aligningWithGapsY, px, setWidth, styleText } from "../layout";
 import { registerUpdateLayout } from "../page";
-import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight, styleScrollText } from "../scroll";
+import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight } from "../scroll";
 
 function addIcon(imageSrc: string, clickLink: string) {
     const icon = addScrollImage(imageSrc);
@@ -32,12 +32,11 @@ export function addConnectPage() {
         setWidth(connect, width);
         centerWithinScrollY(letsMeet, 0.8);
 
-        for (const text of texts) styleScrollText(text, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.028 * s, width, lineHeight: 0.05 * s });
-        styleScrollText(who, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.028 * s, width: 1 * s, lineHeight: 0.05 * s });
+        for (const text of texts) styleText(text, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.028 * s, width, lineHeight: 0.05 * s });
+        styleText(who, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.028 * s, width: 1 * s, lineHeight: 0.05 * s });
 
         const [elementAlignments, _] = aligningWithGapsY([
-            //
-            connect,
+            connect, //
             0.09 * s,
             texts[0],
             0.03 * s,

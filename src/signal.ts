@@ -10,12 +10,13 @@ export class Signal {
     }
 
     unsubscribe(subscriber: () => void) {
-        this.subscribers.delete(subscriber)
+        this.subscribers.delete(subscriber);
     }
 }
 
 export function effect(func: () => void, observedSignals: Signal[]) {
     observedSignals.forEach((o) => o.subscribe(func));
+    func();
 }
 
 export function elementSignal(element: Element) {

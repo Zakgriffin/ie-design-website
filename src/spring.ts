@@ -34,9 +34,9 @@ const DEFAULT_ANIMATION_TOLERANCE = 0.01;
 
 export function animateSpring(spring: Spring, signal: Signal) {
     if (spring.isAnimating) return;
-    spring.onUnrest()
-
+    
     spring.isAnimating = true;
+    spring.onUnrest()
 
     let lastMillis = 0;
     requestAnimationFrame(firstFrame);

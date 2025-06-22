@@ -1,8 +1,17 @@
-import { interlaced } from "../util";
+import { interlaced } from "./util";
 
 interface ElementAlignment {
     element: HTMLElement;
     offset: number;
+}
+
+export interface TextDetails {
+    letterSpacing: number;
+    fontWeight: number;
+    color: string;
+    fontSize: number;
+    width?: number;
+    lineHeight: number;
 }
 
 export function px(pixels: number) {
@@ -57,4 +66,15 @@ export function yCenterWithGap(elements: HTMLElement[], gap: number, center: num
 
 export function centerElement(element: HTMLElement) {
     element.style.left = px(innerWidth / 2 - element.offsetWidth / 2);
+}
+
+export function styleText(scrollText: HTMLElement, s: TextDetails) {
+    scrollText.style.fontFamily = "Spartan";
+    scrollText.style.position = "absolute";
+    scrollText.style.fontWeight = "" + s.fontWeight;
+    scrollText.style.color = s.color;
+    scrollText.style.letterSpacing = px(s.letterSpacing);
+    scrollText.style.fontSize = px(s.fontSize);
+    if (s.width) scrollText.style.width = px(s.width);
+    scrollText.style.lineHeight = px(s.lineHeight);
 }

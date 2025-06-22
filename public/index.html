@@ -15,7 +15,6 @@
 </head>
 
 <body>
-    <div id="scroll-container"></div>
     <script src="index.js"></script>
 </body>
 
@@ -33,16 +32,21 @@
         overscroll-behavior-x: none;
     }
 
-    #scroll-container {
-        position: absolute;
-        /* main scroll controller */
-        overflow: scroll;
-    }
-
-    @keyframes fadeIn {
+    @keyframes fadeInX {
         0% {
             opacity: 0;
             transform: translateX(100px);
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInY {
+        0% {
+            opacity: 0;
+            transform: translateY(100px);
         }
 
         100% {

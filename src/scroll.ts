@@ -1,5 +1,5 @@
-import { FADE_IN_ANIMATION, bodySig, ieBlue, ieGreen } from "./constants";
-import { aligningWithGapsY, isLandscape, px, setHeight, setWidth } from "./layout";
+import { body, bodySig, fadeInAnimation, ieBlue, ieGreen } from "./constants";
+import { aligningWithGapsY, isLandscape, px, setHeight, setWidth, styleText, TextDetails } from "./layout";
 import { appendChildForPage, awaitLayoutForImageLoading } from "./page";
 import { effect } from "./signal";
 
@@ -8,50 +8,40 @@ export interface TextSquare {
     minors: HTMLElement[];
 }
 
-interface ScrollTextDetails {
-    letterSpacing: number;
-    fontWeight: number;
-    color: string;
-    fontSize: number;
-    width: number;
-    lineHeight: number;
-}
-
-export const scrollContainer = document.getElementById("scroll-container");
+export const scrollContainer = document.createElement("div");
+scrollContainer.style.position = "absolute";
+body.appendChild(scrollContainer);
 (scrollContainer.style as any).scrollbarColor = `${ieGreen} ${ieBlue}55`;
 
 scrollContainer.onwheel = (e) => {
     scrollContainer.scrollBy({ left: e.deltaY });
 };
 
+export function addScrollPadding() {
+    const scrollPadding = document.createElement("div");
+    scrollPadding.style.position = "absolute";
+    scrollPadding.style.width = px(1); // any nonzero thickness is enough to extend scrollContainer
+    scrollPadding.style.height = px(1);
+    appendChildForPage(scrollContainer, scrollPadding);
+    return scrollPadding;
+}
+
 export function addScrollImage(src: string): HTMLImageElement {
     const scrollImage = document.createElement("img");
     scrollImage.style.position = "absolute";
     scrollImage.src = src;
-    scrollImage.style.animation = FADE_IN_ANIMATION;
+    scrollImage.style.animation = fadeInAnimation();
     awaitLayoutForImageLoading(scrollImage);
     appendChildForPage(scrollContainer, scrollImage);
-
     return scrollImage;
 }
 
 export function addScrollText(text: string) {
     const scrollText = document.createElement("p");
     scrollText.innerHTML = text;
-    scrollText.style.animation = FADE_IN_ANIMATION;
+    scrollText.style.animation = fadeInAnimation();
     appendChildForPage(scrollContainer, scrollText);
     return scrollText;
-}
-
-export function styleScrollText(scrollText: HTMLElement, s: ScrollTextDetails) {
-    scrollText.style.fontFamily = "Spartan";
-    scrollText.style.position = "absolute";
-    scrollText.style.fontWeight = "" + s.fontWeight;
-    scrollText.style.color = s.color;
-    scrollText.style.letterSpacing = px(s.letterSpacing);
-    scrollText.style.fontSize = px(s.fontSize);
-    scrollText.style.width = px(s.width);
-    scrollText.style.lineHeight = px(s.lineHeight);
 }
 
 export function addScrollTextSquare(majorText: string, ...minorTexts: string[]): TextSquare {
@@ -60,9 +50,9 @@ export function addScrollTextSquare(majorText: string, ...minorTexts: string[]):
     return { major, minors };
 }
 
-export function styleScrollTextSquare({ major, minors }: TextSquare, majorScrollTextDetails: ScrollTextDetails, minorScrollTextDetails: ScrollTextDetails) {
-    styleScrollText(major, majorScrollTextDetails);
-    for (const minor of minors) styleScrollText(minor, minorScrollTextDetails);
+export function styleScrollTextSquare({ major, minors }: TextSquare, majorTextDetails: TextDetails, minorTextDetails: TextDetails) {
+    styleText(major, majorTextDetails);
+    for (const minor of minors) styleText(minor, minorTextDetails);
 }
 
 effect(() => {
@@ -70,27 +60,36 @@ effect(() => {
         const x = 280;
 
         const scrollHeight = getScrollHeight();
-        scrollContainer.style.height = px(0.85 * innerHeight);
+        const underScrollContainer = (innerHeight - scrollHeight) / 2;
+        scrollContainer.style.height = px(scrollHeight + underScrollContainer); // place scroll bar at bottom of page
         scrollContainer.style.width = px(innerWidth - x);
         scrollContainer.style.top = px((innerHeight - scrollHeight) / 2);
         scrollContainer.style.left = px(x);
+
+        scrollContainer.style.overflowX = "scroll";
+        scrollContainer.style.overflowY = "hidden";
+        scrollContainer.scrollTop = 0;
     } else {
         const scrollWidth = getScrollWidth();
         scrollContainer.style.width = px(scrollWidth);
         scrollContainer.style.height = px(innerHeight);
         scrollContainer.style.left = px((innerWidth - scrollWidth) / 2);
         scrollContainer.style.top = px(0);
+
+        scrollContainer.style.overflowX = "hidden";
+        scrollContainer.style.overflowY = "scroll";
+        scrollContainer.scrollLeft = 0;
     }
 }, [bodySig]);
 
 export function getScrollHeight() {
-    const SCROLL_HEIGHT_PROPORTION = 0.7;
-    return innerHeight * SCROLL_HEIGHT_PROPORTION; // TODO this should just use actual scroll height
+    // return innerHeight * 0.7;
+    return 1.02 * innerHeight - 0.000485 * innerHeight * innerHeight;
 }
 
 export function getScrollWidth() {
     const SCROLL_WIDTH_PROPORTION = 1;
-    return innerWidth * SCROLL_WIDTH_PROPORTION; // TODO this should just use actual scroll height
+    return innerWidth * SCROLL_WIDTH_PROPORTION;
 }
 export function alignScrollTextSquare({ major, minors }: TextSquare, majorToMinorGap: number, betweenMinorsGap: number) {
     const items: (HTMLElement | number)[] = [];

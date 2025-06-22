@@ -1,7 +1,7 @@
 import { ieGreen } from "../constants";
-import { aligningWithGapsX, aligningWithGapsY, px, setHeight } from "../layout";
+import { aligningWithGapsX, aligningWithGapsY, px, setHeight, styleText } from "../layout";
 import { registerUpdateLayout } from "../page";
-import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight, styleScrollText } from "../scroll";
+import { addScrollImage, addScrollPadding, addScrollText, centerWithinScrollY, getScrollHeight, scrollContainer } from "../scroll";
 
 interface Quote {
     quote: HTMLParagraphElement;
@@ -13,6 +13,7 @@ interface Quote {
 
 function addQuote(quoteText: string, authorText: string, titleText: string): Quote {
     const quote = addScrollText(quoteText);
+    quote.style.animation = ""; // can't animate in otherwise close quote bounding box shit gets confused
     const author = addScrollText(authorText);
     const title = addScrollText(titleText);
     const openQuote = addScrollText("“");
@@ -24,20 +25,20 @@ function addQuote(quoteText: string, authorText: string, titleText: string): Quo
 function styleQuote({ quote, author, title, openQuote, closeQuote }: Quote) {
     const s = getScrollHeight();
     const widthScale = 0.75;
-    styleScrollText(quote, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.032 * s, width: widthScale * s, lineHeight: 0.065 * s });
+    styleText(quote, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.032 * s, width: widthScale * s, lineHeight: 0.065 * s });
 
-    styleScrollText(author, { letterSpacing: 0.2, fontWeight: 350, color: "#000000", fontSize: 0.035 * s, width: widthScale * s, lineHeight: 0.06 * s });
+    styleText(author, { letterSpacing: 0.2, fontWeight: 350, color: "#000000", fontSize: 0.035 * s, width: widthScale * s, lineHeight: 0.06 * s });
     author.style.textAlign = "right";
 
-    styleScrollText(title, { letterSpacing: 0.15, fontWeight: 350, color: "#000000", fontSize: 0.025 * s, width: widthScale * s, lineHeight: 0.06 * s });
+    styleText(title, { letterSpacing: 0.15, fontWeight: 350, color: "#000000", fontSize: 0.025 * s, width: widthScale * s, lineHeight: 0.06 * s });
     title.style.textAlign = "right";
 
     const quoteTextDetails = { letterSpacing: 0.2, fontWeight: 350, color: ieGreen, fontSize: 0.15 * s, width: 0.05 * s, lineHeight: 0.06 * s };
-    styleScrollText(openQuote, quoteTextDetails);
-    styleScrollText(closeQuote, quoteTextDetails);
+    styleText(openQuote, quoteTextDetails);
+    styleText(closeQuote, quoteTextDetails);
 }
 
-function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote, nudge: number) {
+function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote) {
     const s = getScrollHeight();
 
     author.style.left = px(quote.offsetLeft);
@@ -55,10 +56,20 @@ function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote, nud
         element.style.top = px(offset + 0.35 * s);
     }
 
-    openQuote.style.left = px(quote.offsetLeft - 0.07 * s);
-    openQuote.style.top = px(quote.offsetTop + 0.05 * s);
-    closeQuote.style.left = px(quote.offsetLeft + quote.offsetWidth - nudge);
-    closeQuote.style.top = px(quote.offsetTop + quote.offsetHeight - 0.01 * s);
+    // this is sorta jank. again, close quote bounding box gets confused
+    setTimeout(() => {
+        const range = document.createRange();
+        range.selectNodeContents(quote);
+        const rects = range.getClientRects();
+        const scrollContainerRect = scrollContainer.getBoundingClientRect();
+        const lastTextLineRect = rects[rects.length - 1];
+        const lastRectLeft = lastTextLineRect.left - scrollContainerRect.left + scrollContainer.scrollLeft;
+
+        openQuote.style.left = px(quote.offsetLeft - 0.07 * s);
+        openQuote.style.top = px(quote.offsetTop + 0.05 * s);
+        closeQuote.style.left = px(lastRectLeft + lastTextLineRect.width);
+        closeQuote.style.top = px(quote.offsetTop + quote.offsetHeight - 0.01 * s);
+    }, 100);
 }
 
 export function addEvolutionPage() {
@@ -86,6 +97,8 @@ export function addEvolutionPage() {
         ),
     ];
 
+    const scrollPadding = addScrollPadding();
+
     registerUpdateLayout(() => {
         const s = getScrollHeight();
 
@@ -103,6 +116,7 @@ export function addEvolutionPage() {
             if (i < quotes.length) items.push(0.3 * s, quotes[i].quote);
             if (i < promos.length) items.push(0.3 * s, promos[i]);
         }
+        items.push(0.2 * s, scrollPadding);
 
         const [elementAlignments, _] = aligningWithGapsX(items);
 
@@ -115,6 +129,6 @@ export function addEvolutionPage() {
         logoFull.style.left = px(evolutionHistory.offsetLeft + (evolutionHistory.offsetWidth - logoFull.offsetWidth) / 2);
         logoFull.style.top = px(evolutionHistory.offsetTop - logoFull.offsetHeight - 0.1 * s);
 
-        for (const quote of quotes) layoutQuote(quote, 0.05 * s);
+        for (const quote of quotes) layoutQuote(quote);
     });
 }
