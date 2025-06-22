@@ -1,6 +1,7 @@
 import { ieGreen } from "../constants";
-import { centerScaledY, getScrollHeight, px, setHeight, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollText, registerUpdateLayout, styleScrollText } from "../shared";
+import { aligningWithGapsX, aligningWithGapsY, px, setHeight } from "../layout";
+import { registerUpdateLayout } from "../page";
+import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight, styleScrollText } from "../scroll";
 
 interface Quote {
     quote: HTMLParagraphElement;
@@ -42,7 +43,7 @@ function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote, nud
     author.style.left = px(quote.offsetLeft);
     title.style.left = px(quote.offsetLeft);
 
-    const [elementAlignments, _] = yAligningWithGaps([
+    const [elementAlignments, _] = aligningWithGapsY([
         quote, //
         0.04 * s,
         author,
@@ -60,7 +61,7 @@ function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote, nud
     closeQuote.style.top = px(quote.offsetTop + quote.offsetHeight - 0.01 * s);
 }
 
-export function clickNavEvolution() {
+export function addEvolutionPage() {
     const evolution = addScrollImage("evolution/evolution.svg");
     const evolutionHistory = addScrollImage("evolution/evolution-history.svg");
     const logoFull = addScrollImage("logo-full.svg");
@@ -88,11 +89,11 @@ export function clickNavEvolution() {
     registerUpdateLayout(() => {
         const s = getScrollHeight();
 
-        centerScaledY(evolution, 0.75);
+        centerWithinScrollY(evolution, 0.75);
         setHeight(evolutionHistory, 0.3 * s);
         setHeight(logoFull, 0.45 * s);
 
-        for (const promo of promos) centerScaledY(promo, 1);
+        for (const promo of promos) centerWithinScrollY(promo, 1);
         for (const quote of quotes) styleQuote(quote);
 
         const items: (HTMLElement | number)[] = [evolution, 0.2 * s, evolutionHistory];
@@ -103,7 +104,7 @@ export function clickNavEvolution() {
             if (i < promos.length) items.push(0.3 * s, promos[i]);
         }
 
-        const [elementAlignments, _] = xAligningWithGaps(items);
+        const [elementAlignments, _] = aligningWithGapsX(items);
 
         for (const { element, offset } of elementAlignments) {
             element.style.left = px(offset);

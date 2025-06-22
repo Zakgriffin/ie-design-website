@@ -8,6 +8,9 @@ export class Spring {
     stiffness = 0;
     isAnimating = false;
 
+    onRest = () => {};
+    onUnrest = () => {};
+
     // mx'' - bx' = kx
 
     constructor(initialValue: number) {
@@ -31,6 +34,7 @@ const DEFAULT_ANIMATION_TOLERANCE = 0.01;
 
 export function animateSpring(spring: Spring, signal: Signal) {
     if (spring.isAnimating) return;
+    spring.onUnrest()
 
     spring.isAnimating = true;
 
@@ -52,6 +56,7 @@ export function animateSpring(spring: Spring, signal: Signal) {
             spring.position = spring.target;
             spring.velocity = 0;
             spring.isAnimating = false;
+            spring.onRest();
             return;
         }
 

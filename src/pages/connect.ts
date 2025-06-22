@@ -1,5 +1,6 @@
-import { centerScaledY, getScrollHeight, px, setWidth, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollText, registerUpdateLayout, styleScrollText } from "../shared";
+import { aligningWithGapsX, aligningWithGapsY, px, setWidth } from "../layout";
+import { registerUpdateLayout } from "../page";
+import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight, styleScrollText } from "../scroll";
 
 function addIcon(imageSrc: string, clickLink: string) {
     const icon = addScrollImage(imageSrc);
@@ -8,7 +9,7 @@ function addIcon(imageSrc: string, clickLink: string) {
     return icon;
 }
 
-export function clickNavConnect() {
+export function addConnectPage() {
     const connect = addScrollImage("connect/connect.svg");
     const texts = [
         addScrollText("Our clients look to us for more than award-winning design. They value our role as trusted advisor, support, and confidant."),
@@ -29,12 +30,12 @@ export function clickNavConnect() {
 
         const width = 0.55 * s;
         setWidth(connect, width);
-        centerScaledY(letsMeet, 0.8);
+        centerWithinScrollY(letsMeet, 0.8);
 
         for (const text of texts) styleScrollText(text, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.028 * s, width, lineHeight: 0.05 * s });
         styleScrollText(who, { letterSpacing: 0.18, fontWeight: 350, color: "#000000", fontSize: 0.028 * s, width: 1 * s, lineHeight: 0.05 * s });
 
-        const [elementAlignments, _] = yAligningWithGaps([
+        const [elementAlignments, _] = aligningWithGapsY([
             //
             connect,
             0.09 * s,
@@ -59,7 +60,7 @@ export function clickNavConnect() {
             const lastText = texts[texts.length - 1];
             icon.style.top = px(lastText.offsetTop + lastText.offsetHeight + 0.03 * s);
         }
-        const [iconAlignments, __] = xAligningWithGaps([instagramIcon, 0.03 * s, linkedinIcon, 0.03 * s, mailIcon]);
+        const [iconAlignments, __] = aligningWithGapsX([instagramIcon, 0.03 * s, linkedinIcon, 0.03 * s, mailIcon]);
 
         for (const { element, offset } of iconAlignments) {
             element.style.left = px(offset);

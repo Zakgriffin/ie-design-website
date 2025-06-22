@@ -1,8 +1,10 @@
-import { effect, Signal } from "../signal";
-import { animateSpring, Spring } from "../spring";
-import { addScrollImage, addScrollTextSquare, notifyImageLoading, cleanUpLastPages, queueBeforeLayout, registerUpdateLayout, scrollContainer, spaceToFile, styleScrollTextSquare } from "../shared";
-import { alignScrollTextSquare, centerScaledY, getScrollHeight, mapRange, px, TextSquare, xAligningWithGaps } from "../layout";
-import { body, bodySig } from "../constants";
+import { spaceToFile } from "../../util";
+import { body } from "../constants";
+import { aligningWithGapsX, px } from "../layout";
+import { appendChildForPage, awaitLayoutForImageLoading, pageCleanups, registerUpdateLayout } from "../page";
+import { TextSquare, addScrollImage, addScrollTextSquare, alignScrollTextSquare, centerWithinScrollY, getScrollHeight, scrollContainer, styleScrollTextSquare } from "../scroll";
+import { Signal, effect } from "../signal";
+import { Spring, animateSpring } from "../spring";
 
 interface WorkContent {
     name: string;
@@ -84,8 +86,8 @@ function styleWorkItems(workTabs: WorkTab[]) {
             { letterSpacing: 2.2, fontWeight: 400, color: "#333333", fontSize: 0.065 * s, width: 1 * s, lineHeight: 0.09 * s },
             { letterSpacing: 0.2, fontWeight: 300, color: "#333333", fontSize: 0.03 * s, width: 1 * s, lineHeight: 0.05 * s }
         );
-        centerScaledY(workItem.image1, 1);
-        centerScaledY(workItem.image2, 1);
+        centerWithinScrollY(workItem.image1, 1);
+        centerWithinScrollY(workItem.image2, 1);
     }
 }
 
@@ -96,8 +98,7 @@ function layoutWorkItems(workTabs: WorkTab[]) {
     for (const workTab of workTabs) {
         const { workItem } = workTab;
         items.push(
-            //
-            workItem.textSquare.major,
+            workItem.textSquare.major, //
             0.2 * s,
             workItem.image1,
             0.15 * s,
@@ -105,7 +106,7 @@ function layoutWorkItems(workTabs: WorkTab[]) {
             0.22 * s
         );
     }
-    const [elementAlignments, _] = xAligningWithGaps(items);
+    const [elementAlignments, _] = aligningWithGapsX(items);
 
     for (const { element, offset } of elementAlignments) {
         element.style.left = px(offset);
@@ -114,7 +115,7 @@ function layoutWorkItems(workTabs: WorkTab[]) {
     for (const workTab of workTabs) alignScrollTextSquare(workTab.workItem.textSquare, 0.01 * s, 0.01 * s);
 }
 
-export function clickNavWork() {
+export function addWorkPage() {
     const workTabs: WorkTab[] = [];
 
     // function tabAlignment(tabElement: HTMLImageElement) {
@@ -128,7 +129,7 @@ export function clickNavWork() {
     // }
 
     (scrollContainer.style as any).scrollbarWidth = "none";
-    cleanUpLastPages.push(() => ((scrollContainer.style as any).scrollbarWidth = ""));
+    pageCleanups.add(() => ((scrollContainer.style as any).scrollbarWidth = ""));
 
     let tabsShowing = true;
     let currentWorkItem: WorkItem | undefined;
@@ -140,11 +141,8 @@ export function clickNavWork() {
         tabElement.style.position = "absolute";
         tabElement.style.visibility = "hidden";
         tabElement.src = `work/${spaceToFile(workContent.name)}/tab.png`;
-        notifyImageLoading(tabElement);
-        queueBeforeLayout(() => {
-            body.appendChild(tabElement);
-            cleanUpLastPages.push(() => body.removeChild(tabElement));
-        });
+        awaitLayoutForImageLoading(tabElement);
+        appendChildForPage(body, tabElement);
 
         const spring = new Spring(0);
         const springSig = new Signal();
@@ -223,7 +221,7 @@ export function clickNavWork() {
             // spring.position = innerHeight;
             // animateSpring(spring, springSig);
         }, 80 * i);
-        cleanUpLastPages.push(() => clearInterval(timeoutHandle));
+        pageCleanups.add(() => clearInterval(timeoutHandle));
 
         workTabs.push({ tabElement, spring, springSig, workItem: undefined });
 

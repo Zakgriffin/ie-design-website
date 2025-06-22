@@ -1,31 +1,12 @@
-import { effect } from "./signal";
+import { interlaced } from "../util";
 
 interface ElementAlignment {
     element: HTMLElement;
     offset: number;
 }
 
-export interface TextSquare {
-    major: HTMLElement;
-    minors: HTMLElement[];
-}
-
 export function px(pixels: number) {
     return pixels + "px";
-}
-
-export function mapRange(n: number, start1: number, stop1: number, start2: number, stop2: number) {
-    return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
-}
-
-export function getScrollHeight() {
-    const SCROLL_HEIGHT_PROPORTION = 0.7;
-    return innerHeight * SCROLL_HEIGHT_PROPORTION; // TODO this should just use actual scroll height
-}
-
-export function getScrollWidth() {
-    const SCROLL_WIDTH_PROPORTION = 1;
-    return innerWidth * SCROLL_WIDTH_PROPORTION; // TODO this should just use actual scroll height
 }
 
 export function alignWithGap(leftElement: HTMLElement, rightElement: HTMLElement, gap: number) {
@@ -48,31 +29,9 @@ function axisAligningWithGaps(axisSize: (element: HTMLElement) => number) {
     };
 }
 
-export const yAligningWithGaps = axisAligningWithGaps((element) => element.offsetHeight);
-export const xAligningWithGaps = axisAligningWithGaps((element) => element.offsetWidth);
-
-export function alignScrollTextSquare({ major, minors }: TextSquare, majorToMinorGap: number, betweenMinorsGap: number) {
-    const items: (HTMLElement | number)[] = [];
-
-    items.push(major, majorToMinorGap);
-
-    for (const minor of minors) {
-        items.push(minor, betweenMinorsGap);
-    }
-    items.pop(); // remove final gap, only want betweens
-
-    const scrollHeight = getScrollHeight();
-    const [elementAlignments, totalHeight] = yAligningWithGaps(items);
-    const groupTop = (scrollHeight - totalHeight) / 2;
-
-    for (const { element, offset } of elementAlignments) {
-        element.style.top = px(groupTop + offset);
-    }
-
-    for (const minor of minors) {
-        minor.style.left = major.style.left;
-    }
-}
+// ZZZZ want a short hand for common simple use
+export const aligningWithGapsY = axisAligningWithGaps((element) => element.offsetHeight);
+export const aligningWithGapsX = axisAligningWithGaps((element) => element.offsetWidth);
 
 export function setWidth(element: HTMLElement, width: number) {
     element.style.width = px(width);
@@ -83,20 +42,19 @@ export function setHeight(element: HTMLElement, height: number) {
     if (element instanceof HTMLImageElement) element.style.width = px((height * element.naturalWidth) / element.naturalHeight);
 }
 
-export function centerScaledY(element: HTMLElement, scale: number) {
-    const s = getScrollHeight();
-    const height = s * scale;
-    setHeight(element, height);
-    element.style.top = px((s - height) / 2);
-}
-
-export function centerScaledX(element: HTMLElement, scale: number) {
-    const s = getScrollWidth();
-    const width = s * scale;
-    setWidth(element, width);
-    element.style.left = px((s - width) / 2);
-}
-
 export function isLandscape() {
     return innerWidth / innerHeight > 1;
+}
+
+export function yCenterWithGap(elements: HTMLElement[], gap: number, center: number) {
+    const elementsWithGaps = interlaced(elements, gap);
+    const [elementAlignments, totalHeight] = aligningWithGapsY(elementsWithGaps);
+
+    for (const { element, offset } of elementAlignments) {
+        element.style.top = px(offset + center - totalHeight / 2);
+    }
+}
+
+export function centerElement(element: HTMLElement) {
+    element.style.left = px(innerWidth / 2 - element.offsetWidth / 2);
 }

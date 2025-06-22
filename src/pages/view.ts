@@ -1,8 +1,9 @@
 import { SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION } from "../constants";
-import { alignScrollTextSquare, centerScaledX, centerScaledY, getScrollHeight, getScrollWidth, isLandscape, px, TextSquare, xAligningWithGaps, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollTextSquare, registerUpdateLayout, styleScrollTextSquare } from "../shared";
+import { aligningWithGapsX, aligningWithGapsY, isLandscape, px } from "../layout";
+import { registerUpdateLayout } from "../page";
+import { addScrollImage, addScrollTextSquare, alignScrollTextSquare, centerWithinScrollX, centerWithinScrollY, getScrollHeight, getScrollWidth, styleScrollTextSquare, TextSquare } from "../scroll";
 
-export function clickNavView() {
+export function addViewPage() {
     const home = addScrollImage("view/home.svg");
     const horizon = addScrollImage("view/horizon.jpg");
     const freshLook = addScrollImage("view/fresh-look.svg");
@@ -33,12 +34,12 @@ export function clickNavView() {
         const IMAGE_TEXT_SQUARE_PAD = 0.17;
 
         if (isLandscape()) {
-            centerScaledY(home, 0.95);
-            centerScaledY(horizon, 1);
-            centerScaledY(freshLook, 0.8);
-            centerScaledY(greatBrands, 1);
-            centerScaledY(insightClarity, 1);
-            centerScaledY(skyward, 1);
+            centerWithinScrollY(home, 0.95);
+            centerWithinScrollY(horizon, 1);
+            centerWithinScrollY(freshLook, 0.8);
+            centerWithinScrollY(greatBrands, 1);
+            centerWithinScrollY(insightClarity, 1);
+            centerWithinScrollY(skyward, 1);
 
             const s = getScrollHeight();
 
@@ -49,7 +50,7 @@ export function clickNavView() {
                     { letterSpacing: 0.2, fontWeight: 300, color: "#000000", fontSize: 0.03 * s, width: SCROLL_TEXT_WIDTH_HEIGHT_PROPORTION * s, lineHeight: 0.05 * s }
                 );
 
-            const [elementAlignments, _] = xAligningWithGaps([
+            const [elementAlignments, _] = aligningWithGapsX([
                 home,
                 HOME_HORIZON_PAD * s,
                 horizon,
@@ -75,12 +76,12 @@ export function clickNavView() {
 
             for (const textTile of textTiles) alignScrollTextSquare(textTile, 20, 20);
         } else {
-            centerScaledX(home, 0.95);
-            centerScaledX(horizon, 1);
-            centerScaledX(freshLook, 0.85);
-            centerScaledX(greatBrands, 1);
-            centerScaledX(insightClarity, 1);
-            centerScaledX(skyward, 1);
+            centerWithinScrollX(home, 0.95);
+            centerWithinScrollX(horizon, 1);
+            centerWithinScrollX(freshLook, 0.85);
+            centerWithinScrollX(greatBrands, 1);
+            centerWithinScrollX(insightClarity, 1);
+            centerWithinScrollX(skyward, 1);
 
             const s = getScrollWidth();
 
@@ -93,8 +94,8 @@ export function clickNavView() {
 
             const TEXT_TILE_WIDTH = 0.85;
             for (const textTile of textTiles) {
-                centerScaledX(textTile.major, TEXT_TILE_WIDTH);
-                for (const minor of textTile.minors) centerScaledX(minor, TEXT_TILE_WIDTH);
+                centerWithinScrollX(textTile.major, TEXT_TILE_WIDTH);
+                for (const minor of textTile.minors) centerWithinScrollX(minor, TEXT_TILE_WIDTH);
             }
 
             const MOBILE_PAD = 0.08;
@@ -105,7 +106,7 @@ export function clickNavView() {
                 return x;
             }
 
-            const [elementAlignments, _] = yAligningWithGaps([
+            const [elementAlignments, _] = aligningWithGapsY([
                 home,
                 MOBILE_PAD * s,
                 horizon,

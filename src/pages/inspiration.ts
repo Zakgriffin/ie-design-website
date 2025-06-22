@@ -1,6 +1,7 @@
 import { ieBlue } from "../constants";
-import { alignWithGap, centerScaledY, getScrollHeight, px, yAligningWithGaps } from "../layout";
-import { addScrollImage, addScrollText, registerUpdateLayout, styleScrollText } from "../shared";
+import { alignWithGap, aligningWithGapsY, px } from "../layout";
+import { registerUpdateLayout } from "../page";
+import { addScrollImage, addScrollText, centerWithinScrollY, getScrollHeight, styleScrollText } from "../scroll";
 
 const INSPIRATION_TILE_WIDTH_PROPORTION = 0.85;
 
@@ -28,7 +29,7 @@ function alignInspirationTile({ image, major, minor, readMore }: InspirationTile
     minor.style.left = image.style.left;
     readMore.style.left = image.style.left;
 
-    const [elementAlignments, _] = yAligningWithGaps([
+    const [elementAlignments, _] = aligningWithGapsY([
         image, //
         0.03 * s,
         major,
@@ -52,7 +53,7 @@ function addInspirationTile(imageString: string, majorText: string, minorText: s
     return { image, major, minor, readMore };
 }
 
-export function clickNavInspiration() {
+export function addInspirationPage() {
     const inspiration = addScrollImage("inspiration/inspiration.svg");
 
     const tiles = [
@@ -71,7 +72,7 @@ export function clickNavInspiration() {
     registerUpdateLayout(() => {
         const s = getScrollHeight();
 
-        centerScaledY(inspiration, 0.75);
+        centerWithinScrollY(inspiration, 0.75);
 
         for (const tile of tiles) styleInspirationTile(tile);
 
