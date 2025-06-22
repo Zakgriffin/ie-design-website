@@ -30,7 +30,7 @@ const pages = {
     connect: addConnectPage,
 };
 
-const navElementFromString: Record<string, HTMLElement> = {};
+const navItemFromString: Record<string, HTMLElement> = {};
 
 const edgeAlignX = () => innerHeight * 0.1;
 const headerIconSize = () => getHeaderBarHeight() * 0.4;
@@ -100,32 +100,33 @@ async function animateIntro() {
 
 function addNavItems() {
     for (const [pageName, addPage] of Object.entries(pages)) {
-        const navElement = document.createElement("div");
-        navElement.innerHTML = pageName.toUpperCase();
+        const navItem = document.createElement("span");
+        navItem.innerText = pageName.toUpperCase();
 
-        navElement.style.animation = fadeInAnimation();
-        navElement.style.position = "absolute";
-        navElement.style.fontFamily = "Spartan";
-        navElement.style.color = gray;
-        navElement.style.fontWeight = "500";
-        navElement.style.cursor = "pointer";
+        navItem.style.animation = fadeInAnimation();
+        navItem.style.position = "absolute";
+        navItem.style.fontFamily = "Spartan";
+        navItem.style.color = gray;
+        navItem.style.fontWeight = "500";
+        navItem.style.cursor = "pointer";
+        navItem.style.whiteSpace = "nowrap";
 
-        navElement.onclick = () => {
+        navItem.onclick = () => {
             cleanLastPage();
 
-            for (const navElement of Object.values(navElements)) navElement.style.color = gray;
-            navElement.style.color = "#000000";
+            for (const navItem of Object.values(navItems)) navItem.style.color = gray;
+            navItem.style.color = "#000000";
 
             addPage();
             // history.pushState({}, "", "/#/" + pageName);
         };
 
-        body.appendChild(navElement);
+        body.appendChild(navItem);
 
-        navElementFromString[pageName] = navElement;
+        navItemFromString[pageName] = navItem;
     }
 
-    const navElements = Object.values(navElementFromString);
+    const navItems = Object.values(navItemFromString);
 
     effect(() => {
         if (isLandscape()) {
@@ -135,19 +136,15 @@ function addNavItems() {
                 navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
             }
 
-            for (let i = 0; i < navElements.length; i++) {
-                const navItem = navElements[i];
+            for (let i = 0; i < navItems.length; i++) {
+                const navItem = navItems[i];
+                navItem.style.visibility = "visible";
                 alignNavItem(navItem, i - 2);
 
                 navItem.style.fontSize = px(s * 0.025);
             }
         } else {
-            function goAway(element: HTMLElement) {
-                element.style.left = px(-1000);
-                element.style.right = px(-1000);
-            }
-
-            for (let i = 0; i < navElements.length; i++) goAway(navElements[i]);
+            for (const navItem of navItems) navItem.style.visibility = "hidden";
         }
     }, [bodySig]);
 }
@@ -237,7 +234,7 @@ function addMenuButton() {
         body.appendChild(menu);
 
         const menuPageNavs: HTMLElement[] = [];
-        for (const [pageName, navElement] of Object.entries(navElementFromString)) {
+        for (const [pageName, navItem] of Object.entries(navItemFromString)) {
             const menuPageNav = document.createElement("span");
             menuPageNav.style.position = "absolute";
             menuPageNav.innerText = pageName.toUpperCase();
@@ -248,7 +245,7 @@ function addMenuButton() {
 
             menuPageNav.onclick = () => {
                 beginCloseMenu();
-                navElement.click();
+                navItem.click();
             };
 
             body.appendChild(menuPageNav);
@@ -305,7 +302,7 @@ function addLogo() {
     body.appendChild(logo);
 
     logo.onclick = () => {
-        navElementFromString.view.click();
+        navItemFromString.view.click();
 
         const pulse = document.createElement("div");
         pulse.style.position = "absolute";
@@ -354,6 +351,7 @@ function addCopyright() {
     const copyright = document.createElement("span");
     copyright.style.position = "absolute";
     copyright.innerText = "©2025 i.e. design, inc.";
+    copyright.style.whiteSpace = "nowrap";
 
     styleText(copyright, { letterSpacing: 0.3, fontWeight: 500, color: gray, fontSize: 10, lineHeight: 20 });
 
@@ -364,8 +362,8 @@ function addCopyright() {
             copyright.style.left = px(edgeAlignX());
             copyright.style.top = px(innerHeight * 0.9);
         } else {
-            copyright.style.left = px(edgeAlignX());
-            copyright.style.top = px(scrollContainer.offsetHeight);
+            // ZZZZ need to do something here
+            copyright.style.visibility = "hidden";
         }
     }, [bodySig]);
 }
@@ -379,7 +377,7 @@ async function setup() {
     addLogo();
     addCopyright();
 
-    const pageNavElement = navElementFromString[pageName] ?? navElementFromString.view;
-    pageNavElement.click();
+    const pagenavItem = navItemFromString[pageName] ?? navItemFromString.view;
+    pagenavItem.click();
 }
 setup();
