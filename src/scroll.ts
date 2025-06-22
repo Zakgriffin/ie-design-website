@@ -14,7 +14,15 @@ body.appendChild(scrollContainer);
 (scrollContainer.style as any).scrollbarColor = `${ieGreen} ${ieBlue}55`;
 
 scrollContainer.onwheel = (e) => {
-    scrollContainer.scrollBy({ left: e.deltaY });
+    if (isLandscape() && !e.shiftKey) scrollContainer.scrollBy({ left: e.deltaY });
+};
+
+export const getHeaderBarHeight = () => {
+    if (isLandscape()) {
+        return (innerHeight - getScrollHeight()) / 2;
+    } else {
+        return innerHeight * 0.1;
+    }
 };
 
 export function addScrollPadding() {
@@ -71,10 +79,11 @@ effect(() => {
         scrollContainer.scrollTop = 0;
     } else {
         const scrollWidth = getScrollWidth();
+        const headerBarHeight = getHeaderBarHeight();
         scrollContainer.style.width = px(scrollWidth);
-        scrollContainer.style.height = px(innerHeight);
+        scrollContainer.style.height = px(innerHeight - headerBarHeight);
         scrollContainer.style.left = px((innerWidth - scrollWidth) / 2);
-        scrollContainer.style.top = px(0);
+        scrollContainer.style.top = px(headerBarHeight);
 
         scrollContainer.style.overflowX = "hidden";
         scrollContainer.style.overflowY = "scroll";

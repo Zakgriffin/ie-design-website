@@ -7,12 +7,11 @@ import { addEvolutionPage } from "./pages/evolution";
 import { addInspirationPage } from "./pages/inspiration";
 import { addViewPage } from "./pages/view";
 import { addWorkPage } from "./pages/work";
-import { getScrollHeight, scrollContainer } from "./scroll";
+import { getScrollHeight, getHeaderBarHeight, scrollContainer } from "./scroll";
 import { Signal, effect } from "./signal";
 import { Spring, animateSpring } from "./spring";
 
 // TODO
-// strange second scrollbar on mobile
 // mobile layouts
 // blog pages
 // timeline
@@ -34,8 +33,7 @@ const pages = {
 const navElementFromString: Record<string, HTMLElement> = {};
 
 const edgeAlignX = () => innerHeight * 0.1;
-const edgeAlignY = () => innerHeight * 0.1;
-const headerIconSize = () => innerHeight * 0.06;
+const headerIconSize = () => getHeaderBarHeight() * 0.4;
 
 async function animateIntro() {
     // ZZZZ clean this up
@@ -98,6 +96,73 @@ async function animateIntro() {
 
     await sleep(500);
     body.removeChild(svg);
+}
+
+function addNavItems() {
+    for (const [pageName, addPage] of Object.entries(pages)) {
+        const navElement = document.createElement("div");
+        navElement.innerHTML = pageName.toUpperCase();
+
+        navElement.style.animation = fadeInAnimation();
+        navElement.style.position = "absolute";
+        navElement.style.fontFamily = "Spartan";
+        navElement.style.color = gray;
+        navElement.style.fontWeight = "500";
+        navElement.style.cursor = "pointer";
+
+        navElement.onclick = () => {
+            cleanLastPage();
+
+            for (const navElement of Object.values(navElements)) navElement.style.color = gray;
+            navElement.style.color = "#000000";
+
+            addPage();
+            // history.pushState({}, "", "/#/" + pageName);
+        };
+
+        body.appendChild(navElement);
+
+        navElementFromString[pageName] = navElement;
+    }
+
+    const navElements = Object.values(navElementFromString);
+
+    effect(() => {
+        if (isLandscape()) {
+            const s = getScrollHeight();
+            function alignNavItem(navItem: HTMLElement, nudge: number) {
+                navItem.style.left = px(edgeAlignX());
+                navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
+            }
+
+            for (let i = 0; i < navElements.length; i++) {
+                const navItem = navElements[i];
+                alignNavItem(navItem, i - 2);
+
+                navItem.style.fontSize = px(s * 0.025);
+            }
+        } else {
+            function goAway(element: HTMLElement) {
+                element.style.left = px(-1000);
+                element.style.right = px(-1000);
+            }
+
+            for (let i = 0; i < navElements.length; i++) goAway(navElements[i]);
+        }
+    }, [bodySig]);
+}
+
+function addHeaderBar() {
+    const headerBar = document.createElement("div");
+    headerBar.style.position = "absolute";
+    headerBar.style.background = "white";
+
+    body.appendChild(headerBar);
+
+    effect(() => {
+        headerBar.style.width = px(innerWidth);
+        headerBar.style.height = px(getHeaderBarHeight());
+    }, [bodySig]);
 }
 
 function addMenuButton() {
@@ -224,63 +289,10 @@ function addMenuButton() {
         menuButton.style.width = px(size);
         menuButton.style.height = px(size);
 
-        const fromEdge = scrollContainer.offsetTop / 2 - size / 2;
         menuButton.style.left = px(innerWidth - size - edgeAlignX());
-        menuButton.style.top = px(fromEdge);
-    }, [bodySig]);
-}
+        menuButton.style.top = px((getHeaderBarHeight() - size) / 2);
 
-function addNavItems() {
-    for (const [pageName, addPage] of Object.entries(pages)) {
-        const navElement = document.createElement("div");
-        navElement.innerHTML = pageName.toUpperCase();
-
-        navElement.style.animation = fadeInAnimation();
-        navElement.style.position = "absolute";
-        navElement.style.fontFamily = "Spartan";
-        navElement.style.color = gray;
-        navElement.style.fontWeight = "500";
-        navElement.style.cursor = "pointer";
-
-        navElement.onclick = () => {
-            cleanLastPage();
-
-            for (const navElement of Object.values(navElements)) navElement.style.color = gray;
-            navElement.style.color = "#000000";
-
-            addPage();
-            // history.pushState({}, "", "/#/" + pageName);
-        };
-
-        body.appendChild(navElement);
-
-        navElementFromString[pageName] = navElement;
-    }
-
-    const navElements = Object.values(navElementFromString);
-
-    effect(() => {
-        if (isLandscape()) {
-            const s = getScrollHeight();
-            function alignNavItem(navItem: HTMLElement, nudge: number) {
-                navItem.style.left = px(edgeAlignX());
-                navItem.style.top = px(innerHeight / 2 + nudge * 50 - navItem.clientHeight / 2);
-            }
-
-            for (let i = 0; i < navElements.length; i++) {
-                const navItem = navElements[i];
-                alignNavItem(navItem, i - 2);
-
-                navItem.style.fontSize = px(s * 0.025);
-            }
-        } else {
-            function goAway(element: HTMLElement) {
-                element.style.left = px(-1000);
-                element.style.right = px(-1000);
-            }
-
-            for (let i = 0; i < navElements.length; i++) goAway(navElements[i]);
-        }
+        centerElement;
     }, [bodySig]);
 }
 
@@ -333,9 +345,8 @@ function addLogo() {
         logo.style.width = px(size);
         logo.style.height = px(size);
 
-        const fromTop = scrollContainer.offsetTop / 2 - size / 2;
         logo.style.left = px(edgeAlignX());
-        logo.style.top = px(fromTop);
+        logo.style.top = px((getHeaderBarHeight() - size) / 2);
     }, [bodySig]);
 }
 
@@ -353,7 +364,8 @@ function addCopyright() {
             copyright.style.left = px(edgeAlignX());
             copyright.style.top = px(innerHeight * 0.9);
         } else {
-            // ZZZZ do it
+            copyright.style.left = px(edgeAlignX());
+            copyright.style.top = px(scrollContainer.offsetHeight);
         }
     }, [bodySig]);
 }
@@ -361,8 +373,9 @@ function addCopyright() {
 async function setup() {
     const pageName = location.hash.substring("#/".length);
     // if (pageName === "") await animateIntro();
-    addMenuButton();
     addNavItems();
+    addHeaderBar();
+    addMenuButton();
     addLogo();
     addCopyright();
 

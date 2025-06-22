@@ -128,6 +128,7 @@ export function addViewPage() {
                 skyward,
                 MOBILE_PAD * s,
                 ...mobileTile(textTile3),
+                MOBILE_PAD * s,
                 scrollPadding,
             ]);
             for (const { element, offset } of elementAlignments) {

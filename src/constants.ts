@@ -1,8 +1,9 @@
 import { isLandscape } from "./layout";
-import { elementSignal } from "./signal";
+import { Signal } from "./signal";
 
 export const body = document.body;
-export const bodySig = elementSignal(body);
+export const bodySig = new Signal();
+window.onresize = () => bodySig.update();
 
 export const ieBlue = "#609CCE";
 export const ieGreen = "#bfe021";
