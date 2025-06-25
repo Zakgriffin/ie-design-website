@@ -10,18 +10,19 @@ import { addWorkPage } from "./pages/work";
 import { getHeaderBarHeight, getScrollHeight } from "./scroll";
 import { Signal, effect } from "./signal";
 import { Spring, animateSpring, animateWithSpring } from "./spring";
-import { colorOnHover, createElementSVG, createIconSVG, fetchSVG, getElementByIdSVG, makeLine, setAttributes, sleep } from "./util";
+import { colorOnHover, createIconSVG, fetchSVG, getElementByIdSVG, makeLine, setAttributes, sleep } from "./util";
 
 // TODO
 // mobile layouts
 // blog pages
-// timeline
 // work page
 // image click
 // hit end of scroll, next page
 // simpler rectangle scroll bar
 // "view" start animation
 // envelope lower
+// random color on hover for svg art?
+// nav sidebar hover style
 
 const pages = {
     view: addViewPage,

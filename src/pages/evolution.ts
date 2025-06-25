@@ -1,6 +1,6 @@
-import { ieGreen } from "../constants";
+import { gray, ieGreen } from "../constants";
 import { aligningWithGapsX, aligningWithGapsY, px, setHeight, styleText } from "../layout";
-import { registerUpdateLayout } from "../page";
+import { appendChildForPage, registerUpdateLayout } from "../page";
 import { addScrollImage, addScrollPadding, addScrollText, centerWithinScrollY, getScrollHeight, scrollContainer } from "../scroll";
 
 interface Quote {
@@ -72,6 +72,15 @@ function layoutQuote({ quote, author, title, openQuote, closeQuote }: Quote) {
     }, 100);
 }
 
+function createTimelineLine() {
+    const timelineLine = document.createElement("div");
+    timelineLine.style.position = "absolute";
+    timelineLine.style.backgroundColor = gray;
+    timelineLine.style.width = px(1);
+    appendChildForPage(scrollContainer, timelineLine);
+    return timelineLine;
+}
+
 export function addEvolutionPage() {
     const evolution = addScrollImage("evolution/evolution.svg");
     const evolutionHistory = addScrollImage("evolution/evolution-history.svg");
@@ -96,6 +105,17 @@ export function addEvolutionPage() {
             "President, ENV"
         ),
     ];
+
+    const timelineItems = [
+        { element: evolution, offsetFactor: 0.06 }, //
+        { element: evolutionHistory, offsetFactor: 0.06 },
+        ...quotes.map((q) => ({ element: q.quote, offsetFactor: 0.2 })),
+        ...promos.map((o) => ({ element: o, offsetFactor: -0.001 })),
+    ];
+    const timelines = timelineItems.map((timelineItem) => {
+        const timelineLine = createTimelineLine();
+        return { timelineLine, timelineItem };
+    });
 
     const scrollPadding = addScrollPadding();
 
@@ -130,5 +150,13 @@ export function addEvolutionPage() {
         logoFull.style.top = px(evolutionHistory.offsetTop - logoFull.offsetHeight - 0.1 * s);
 
         for (const quote of quotes) layoutQuote(quote);
+
+        for (const { timelineLine, timelineItem } of timelines) {
+            const { element, offsetFactor } = timelineItem;
+            const offset = s * offsetFactor;
+            timelineLine.style.left = px(element.offsetLeft + element.offsetWidth / 2);
+            timelineLine.style.top = px(element.offsetTop + element.offsetHeight + offset);
+            timelineLine.style.height = px(scrollContainer.offsetHeight - (element.offsetTop + element.offsetHeight) - offset);
+        }
     });
 }
