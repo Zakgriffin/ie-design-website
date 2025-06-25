@@ -3,7 +3,7 @@ import { aligningWithGapsY, centerElementX, centerElementY, isLandscape, px, set
 import { Modal } from "./modal";
 import { appendChildForPage, awaitLayoutForImageLoading, registerUpdateLayout } from "./page";
 import { effect } from "./signal";
-import { createIconSVG, makeLine, setAttributes } from "./util";
+import { createIconSVG, makeLine, makePolyline, setAttributes } from "./util";
 
 export interface TextSquare {
     major: HTMLElement;
@@ -49,20 +49,38 @@ export function addScrollImage(src: string): HTMLImageElement {
         bigImage.style.position = "absolute";
         bigImage.style.filter = `drop-shadow(0px 0px 15px ${ieBlue})`;
 
-        const exitButton = createIconSVG(60);
-        const exitLine = makeLine(exitButton, 12);
-        const line1 = exitLine();
-        const line2 = exitLine();
+        const sz = 60;
+        const exitButton = createIconSVG(sz);
+        const makeExitButtonLine = makeLine(exitButton, 12);
+        const exitButtonLine1 = makeExitButtonLine();
+        const exitButtonLine2 = makeExitButtonLine();
+        setAttributes(exitButtonLine1, { x1: 0, y1: 0, x2: sz, y2: sz });
+        setAttributes(exitButtonLine2, { x1: 0, y1: sz, x2: sz, y2: 0 });
         exitButton.style.stroke = gray;
 
-        setAttributes(line1, { x1: 0, y1: 0, x2: 60, y2: 60 });
-        setAttributes(line2, { x1: 0, y1: 60, x2: 60, y2: 0 });
+        const fullscreenButton = createIconSVG(sz);
+        const makeFullscreenButtonPolyline = makePolyline(fullscreenButton, 12);
+        const fullscreenButtonPolyline1 = makeFullscreenButtonPolyline();
+
+        function toPolyline(list: number[][]) {
+            return list.map((point) => point.join(",")).join(" ");
+        }
+
+        setAttributes(fullscreenButtonPolyline1, {
+            points: toPolyline([
+                [0, 0],
+                [0, sz],
+                [sz, sz],
+            ]),
+        });
+        fullscreenButton.style.stroke = gray;
 
         const imageModal = new Modal(
             "#ffffffee",
             (backdrop) => {
                 backdrop.appendChild(bigImage);
                 backdrop.appendChild(exitButton);
+                backdrop.appendChild(fullscreenButton);
             },
             (time) => {
                 bigImage.style.opacity = time + "";
@@ -71,14 +89,21 @@ export function addScrollImage(src: string): HTMLImageElement {
         );
         imageModal.beginOpen();
         exitButton.onclick = imageModal.beginClose;
+        fullscreenButton.onclick = () => bigImage.requestFullscreen();
 
         registerUpdateLayout(() => {
             const size = 15;
             const fromEdge = 15;
+
             exitButton.style.width = px(size);
             exitButton.style.height = px(size);
             exitButton.style.left = px(innerWidth - size - fromEdge);
             exitButton.style.top = px(fromEdge);
+
+            fullscreenButton.style.width = px(size);
+            fullscreenButton.style.height = px(size);
+            fullscreenButton.style.left = px(innerWidth - size - fromEdge - size * 2);
+            fullscreenButton.style.top = px(fromEdge);
 
             const height = innerHeight * 0.9;
             setHeight(bigImage, height);

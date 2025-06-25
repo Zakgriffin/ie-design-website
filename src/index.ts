@@ -21,7 +21,6 @@ import { colorOnHover, createElementSVG, createIconSVG, fetchSVG, getElementById
 // hit end of scroll, next page
 // simpler rectangle scroll bar
 // "view" start animation
-// unify colors on svg artwork
 // envelope lower
 
 const pages = {

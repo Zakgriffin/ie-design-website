@@ -62,3 +62,10 @@ export const makeLine = (svg: SVGSVGElement, strokeWidth: number) => () => {
     svg.appendChild(line);
     return line;
 };
+
+export const makePolyline = (svg: SVGSVGElement, strokeWidth: number) => () => {
+    const line = createElementSVG("polyline");
+    setAttributes(line, { "stroke-width": strokeWidth, fill: "none" });
+    svg.appendChild(line);
+    return line;
+};
