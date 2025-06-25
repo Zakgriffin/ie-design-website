@@ -17,8 +17,6 @@ export async function registerUpdateLayout(updateLayout: () => void) {
 
     effect(updateLayout, [bodySig]);
     pageCleanups.add(() => bodySig.unsubscribe(updateLayout));
-
-    updateLayout();
 }
 
 export function appendChildForPage(parent: HTMLElement, child: HTMLElement) {

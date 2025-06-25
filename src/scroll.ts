@@ -1,7 +1,9 @@
-import { body, bodySig, fadeInAnimation, ieBlue, ieGreen } from "./constants";
-import { aligningWithGapsY, isLandscape, px, setHeight, setWidth, styleText, TextDetails } from "./layout";
-import { appendChildForPage, awaitLayoutForImageLoading } from "./page";
+import { body, bodySig, fadeInAnimation, gray, ieBlue, ieGreen } from "./constants";
+import { aligningWithGapsY, centerElementX, centerElementY, isLandscape, px, setHeight, setWidth, styleText, TextDetails } from "./layout";
+import { Modal } from "./modal";
+import { appendChildForPage, awaitLayoutForImageLoading, registerUpdateLayout } from "./page";
 import { effect } from "./signal";
+import { createIconSVG, makeLine, setAttributes } from "./util";
 
 export interface TextSquare {
     major: HTMLElement;
@@ -39,6 +41,56 @@ export function addScrollImage(src: string): HTMLImageElement {
     scrollImage.style.position = "absolute";
     scrollImage.src = src;
     scrollImage.style.animation = fadeInAnimation();
+    scrollImage.style.cursor = "pointer";
+
+    scrollImage.onclick = () => {
+        const bigImage = document.createElement("img");
+        bigImage.src = src;
+        bigImage.style.position = "absolute";
+        bigImage.style.filter = `drop-shadow(0px 0px 15px ${ieBlue})`;
+
+        const exitButton = createIconSVG(60);
+        const exitLine = makeLine(exitButton, 12);
+        const line1 = exitLine();
+        const line2 = exitLine();
+        exitButton.style.stroke = gray;
+
+        setAttributes(line1, { x1: 0, y1: 0, x2: 60, y2: 60 });
+        setAttributes(line2, { x1: 0, y1: 60, x2: 60, y2: 0 });
+
+        const imageModal = new Modal(
+            "#ffffffee",
+            (backdrop) => {
+                backdrop.appendChild(bigImage);
+                backdrop.appendChild(exitButton);
+            },
+            (time) => {
+                bigImage.style.opacity = time + "";
+            },
+            () => {}
+        );
+        imageModal.beginOpen();
+        exitButton.onclick = imageModal.beginClose;
+
+        registerUpdateLayout(() => {
+            const size = 15;
+            const fromEdge = 15;
+            exitButton.style.width = px(size);
+            exitButton.style.height = px(size);
+            exitButton.style.left = px(innerWidth - size - fromEdge);
+            exitButton.style.top = px(fromEdge);
+
+            const height = innerHeight * 0.9;
+            setHeight(bigImage, height);
+            const minWidth = innerWidth * 0.9;
+            if (bigImage.offsetWidth > minWidth) {
+                setWidth(bigImage, minWidth);
+            }
+            centerElementX(bigImage);
+            centerElementY(bigImage);
+        });
+    };
+
     awaitLayoutForImageLoading(scrollImage);
     appendChildForPage(scrollContainer, scrollImage);
     return scrollImage;

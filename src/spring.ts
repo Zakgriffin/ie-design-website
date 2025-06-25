@@ -1,4 +1,4 @@
-import { Signal } from "./signal";
+import { effect, Signal } from "./signal";
 
 export class Spring {
     position: number;
@@ -34,17 +34,17 @@ const DEFAULT_ANIMATION_TOLERANCE = 0.01;
 
 export function animateSpring(spring: Spring, signal: Signal) {
     if (spring.isAnimating) return;
-    
-    spring.isAnimating = true;
-    spring.onUnrest()
 
+    spring.isAnimating = true;
+    spring.onUnrest();
+    
     let lastMillis = 0;
     requestAnimationFrame(firstFrame);
     function firstFrame(millis: number) {
         lastMillis = millis;
         tickSpring(millis);
     }
-
+    
     function tickSpring(millis: number) {
         const step = millis - lastMillis;
         lastMillis = millis;
@@ -56,10 +56,30 @@ export function animateSpring(spring: Spring, signal: Signal) {
             spring.position = spring.target;
             spring.velocity = 0;
             spring.isAnimating = false;
+            signal.update();
             spring.onRest();
             return;
         }
 
         requestAnimationFrame(tickSpring);
     }
+}
+
+export async function animateWithSpring(stiffness: number, overTime: (time: number) => void) {
+    return new Promise<void>((resolve) => {
+        const spring = new Spring(0);
+        const springSig = new Signal();
+        spring.setStiffnessCritical(stiffness);
+        spring.target = 1;
+
+        const animate = () => overTime(spring.position);
+        spring.onRest = () => {
+            springSig.unsubscribe(animate);
+            resolve();
+        };
+        
+        effect(animate, [springSig]);
+
+        animateSpring(spring, springSig);
+    });
 }

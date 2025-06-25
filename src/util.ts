@@ -1,3 +1,5 @@
+import { fadeInAnimation } from "./constants";
+
 export const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 
 export function spaceToFile(s: string) {
@@ -34,3 +36,29 @@ export function setAttributes(element: Element, attributes: Record<string, any>)
         element.setAttribute(key, value);
     }
 }
+
+export async function fetchSVG(fetchString: string) {
+    const response = await fetch(fetchString);
+    const svgContent = await response.text();
+    return new DOMParser().parseFromString(svgContent, "image/svg+xml").documentElement as unknown as SVGSVGElement;
+}
+
+export function getElementByIdSVG(svg: SVGSVGElement, id: string) {
+    return svg.getElementById(id) as SVGElement;
+}
+
+export function createIconSVG(localSize: number) {
+    const icon = createElementSVG("svg");
+    const pad = 4;
+    icon.style.position = "absolute";
+    icon.style.cursor = "pointer";
+    icon.setAttribute("viewBox", `${-pad} ${-pad} ${localSize + 2 * pad} ${localSize + 2 * pad}`);
+    return icon;
+}
+
+export const makeLine = (svg: SVGSVGElement, strokeWidth: number) => () => {
+    const line = createElementSVG("line");
+    setAttributes(line, { "stroke-width": strokeWidth });
+    svg.appendChild(line);
+    return line;
+};

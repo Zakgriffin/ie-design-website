@@ -55,7 +55,7 @@ export function isLandscape() {
     return innerWidth / innerHeight > 1;
 }
 
-export function yCenterWithGap(elements: HTMLElement[], gap: number, center: number) {
+export function centerWithGapY(elements: HTMLElement[], gap: number, center: number) {
     const elementsWithGaps = interlaced(elements, gap);
     const [elementAlignments, totalHeight] = aligningWithGapsY(elementsWithGaps);
 
@@ -64,8 +64,12 @@ export function yCenterWithGap(elements: HTMLElement[], gap: number, center: num
     }
 }
 
-export function centerElement(element: HTMLElement) {
+export function centerElementX(element: HTMLElement) {
     element.style.left = px(innerWidth / 2 - element.offsetWidth / 2);
+}
+
+export function centerElementY(element: HTMLElement) {
+    element.style.top = px(innerHeight / 2 - element.offsetHeight / 2);
 }
 
 export function styleText(scrollText: HTMLElement, s: TextDetails) {
